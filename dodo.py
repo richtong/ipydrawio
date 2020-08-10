@@ -190,7 +190,7 @@ def task_build():
         )
 
     for py_pkg, py_setup in P.PY_SETUP.items():
-        file_dep = [py_setup, *P.PY_SRC[py_pkg]]
+        file_dep = [py_setup, *P.PY_SRC[py_pkg], P.OK_SUBMODULES]
         yield dict(
             name=f"sdist:{py_pkg}",
             file_dep=file_dep,
