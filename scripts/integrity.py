@@ -26,7 +26,7 @@ def the_changelog():
     ],
 )
 def test_changelog(pkg, version, the_changelog):
-    version_string = f"## {pkg} {version}"
+    version_string = f"### {pkg} {version}"
     assert version_string in the_changelog, version_string
 
 
