@@ -1,3 +1,4 @@
+// Copyright 2020 jupyterlab-drawio contributors
 // Copyright 2018 Wolf Vollprecht
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +24,8 @@ import {
   DocumentWidget,
 } from '@jupyterlab/docregistry';
 
-import { DRAWIO_URL } from '@deathbeds/jupyterlab-drawio-webpack';
-
-import * as IO from './io';
-
 import '../style/index.css';
-
-/**
- * Escape hatch for runtime debugging.
- */
-export const DEBUG = window.location.hash.indexOf('DRAWIO_DEBUG') > -1;
+import { IDiagramManager, DEBUG } from './tokens';
 
 /**
  * Core URL params that are required to function properly
@@ -58,16 +51,19 @@ const SANDBOX_EXCEPTIONS: IFrame.SandboxExceptions[] = [
   'allow-top-navigation',
 ];
 
-const DRAWIO_CLASS = 'jp-Drawio';
+const DRAWIO_CLASS = 'jp-Diagram';
 
-const READY_CLASS = 'jp-Drawio-ready';
+const READY_CLASS = 'jp-Diagram-ready';
 
 /**
  * A document for using offline drawio in an iframe
  */
-export class DrawioWidget extends DocumentWidget<IFrame> {
-  constructor(options: DrawioWidget.IOptions) {
+export class DiagramWidget extends DocumentWidget<IFrame> {
+  protected _manager: IDiagramManager;
+
+  constructor(options: DiagramWidget.IOptions) {
     super({ ...options });
+    this._manager = options.manager;
     this.getSettings = options.getSettings;
     this.addClass(DRAWIO_CLASS);
 
@@ -86,7 +82,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       .then(() => {
         this._saveNeedsExport =
           this.context.contentsModel?.mimetype != null &&
-          IO.EXPORT_MIME_MAP.has(this.context.contentsModel.mimetype);
+          this._manager.isExportable(this.context.contentsModel.mimetype);
       })
       .catch(console.warn);
   }
@@ -308,7 +304,8 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       }
       query.append(p, (params as any)[p]);
     }
-    const url = DRAWIO_URL + '?' + query.toString() + `&p=${plugins}`;
+    const url =
+      this._manager.drawioURL + '?' + query.toString() + `&p=${plugins}`;
 
     if (force || this.content.url !== url) {
       DEBUG && console.warn('configuring iframe', params);
@@ -341,17 +338,11 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
-  get format(): IO.IDrawioFormat | null {
+  get format(): IDiagramManager.IFormat | null {
     if (this.context.contentsModel == null) {
       return null;
     }
-    const { mimetype } = this.context.contentsModel;
-    let format = IO.EXPORT_MIME_MAP.get(mimetype);
-    if (format == null) {
-      if (this.context.contentsModel.type === 'notebook') {
-        return IO.IPYNB_EDITABLE;
-      }
-    }
+    let format = this._manager.formatForModel(this.context.contentsModel);
     return format || null;
   }
 
@@ -419,51 +410,56 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
   private _saveNeedsExport: boolean;
-  private _frameClicked = new Signal<DrawioWidget, void>(this);
+  private _frameClicked = new Signal<DiagramWidget, void>(this);
   private _app: any;
-  private _appChanged = new Signal<DrawioWidget, void>(this);
+  private _appChanged = new Signal<DiagramWidget, void>(this);
 }
 
 export interface ISettingsGetter {
   (): ReadonlyPartialJSONObject;
 }
 
-export namespace DrawioWidget {
+export namespace DiagramWidget {
   export interface IOptions extends DocumentWidget.IOptions<IFrame> {
     getSettings: ISettingsGetter;
+    manager: IDiagramManager;
   }
 }
 
 /**
  * A widget factory for a drawio diagram.
  */
-export class DrawioFactory extends ABCWidgetFactory<
-  DrawioWidget,
+export class DiagramFactory extends ABCWidgetFactory<
+  DiagramWidget,
   DocumentRegistry.IModel
 > {
   protected getSettings: ISettingsGetter;
+  manager: IDiagramManager;
   /**
    * Create a new widget given a context.
    */
-  constructor(options: DrawioFactory.IOptions) {
+  constructor(options: DiagramFactory.IOptions) {
     super(options);
     this.getSettings = options.getSettings;
+    this.manager = options.manager;
   }
 
-  protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
+  protected createNewWidget(context: DocumentRegistry.Context): DiagramWidget {
     const content = new IFrame({
       sandbox: SANDBOX_EXCEPTIONS,
     });
-    return new DrawioWidget({
+    return new DiagramWidget({
       context,
       content,
       getSettings: this.getSettings,
+      manager: this.manager,
     });
   }
 }
 
-export namespace DrawioFactory {
+export namespace DiagramFactory {
   export interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
     getSettings: () => ReadonlyPartialJSONObject;
+    manager: IDiagramManager;
   }
 }

@@ -10,7 +10,7 @@ DOIT_CONFIG = dict(
     backend="sqlite3",
     verbosity=2,
     par_type="thread",
-    default_tasks=["lab_build:extensions"],
+    default_tasks=["setup", "lab_build:extensions"],
 )
 
 
@@ -44,6 +44,52 @@ def task_setup():
         ],
         targets=[P.YARN_INTEGRITY],
     )
+
+    for pkg, pkg_setup in P.PY_SETUP.items():
+        yield _ok(
+            dict(
+                name=f"py:{pkg}",
+                file_dep=[pkg_setup, P.PY_SETUP_CFG[pkg]],
+                actions=[
+                    CmdAction(
+                        [
+                            "python",
+                            "-m",
+                            "pip",
+                            "install",
+                            "-e",
+                            ".",
+                            "--no-deps",
+                            "-vv",
+                        ],
+                        shell=False,
+                        cwd=pkg_setup.parent,
+                    ),
+                    ["python", "-m", "pip", "check"],
+                ],
+            ),
+            P.OK_PYSETUP[pkg],
+        )
+
+    for ext, ext_py in P.SERVER_EXT.items():
+        yield _ok(
+            dict(
+                name=f"ext:{ext}",
+                file_dep=[ext_py, P.OK_PYSETUP[ext]],
+                actions=[
+                    [
+                        "jupyter",
+                        "serverextension",
+                        "enable",
+                        "--py",
+                        "jupyter_drawio_export",
+                        "--sys-prefix",
+                    ],
+                    ["jupyter", "serverextension", "list"],
+                ],
+            ),
+            P.OK_SERVEREXT[ext],
+        )
 
 
 def task_lint():
@@ -91,7 +137,7 @@ def task_lint():
     yield _ok(
         dict(
             name="eslint",
-            file_dep=[P.YARN_INTEGRITY, *P.ALL_PRETTIER, P.OK_PRETTIER],
+            file_dep=[P.YARN_INTEGRITY, *P.ALL_TS, P.OK_PRETTIER],
             actions=[["jlpm", "eslint"]],
         ),
         P.OK_ESLINT,
@@ -128,17 +174,46 @@ def task_build():
             name="js",
             file_dep=[P.YARN_INTEGRITY, P.OK_JS_BUILD_PRE, *P.ALL_TS, *P.ALL_CSS],
             actions=[[*P.JLPM, "lerna", "run", "build"]],
-            targets=[P.JDIO_TSBUILD],
+            targets=sorted(P.JS_TSBUILDINFO.values()),
         ),
         P.OK_JS_BUILD,
     )
 
-    for pkg, (file_dep, target) in P.PKG_PACK.items():
+    for pkg, (file_dep, targets) in P.JS_PKG_PACK.items():
         yield dict(
-            name=f"pack:{pkg.name}",
+            name=f"pack:{pkg}",
             file_dep=file_dep,
-            actions=[CmdAction([P.NPM, "pack", "."], cwd=pkg, shell=False)],
-            targets=[target],
+            actions=[
+                CmdAction([P.NPM, "pack", "."], cwd=str(targets[0].parent), shell=False)
+            ],
+            targets=targets,
+        )
+
+    for py_pkg, py_setup in P.PY_SETUP.items():
+        file_dep = [py_setup, *P.PY_SRC[py_pkg]]
+        yield dict(
+            name=f"sdist:{py_pkg}",
+            file_dep=file_dep,
+            actions=[
+                CmdAction(
+                    ["python", "setup.py", "sdist"],
+                    shell=False,
+                    cwd=str(py_setup.parent),
+                ),
+            ],
+            targets=[P.PY_SDIST[py_pkg]],
+        )
+        yield dict(
+            name=f"whl:{py_pkg}",
+            file_dep=file_dep,
+            actions=[
+                CmdAction(
+                    ["python", "setup.py", "bdist_wheel"],
+                    shell=False,
+                    cwd=str(py_setup.parent),
+                ),
+            ],
+            targets=[P.PY_WHEEL[py_pkg]],
         )
 
 
@@ -146,14 +221,10 @@ def task_lab_build():
     """ do a "production" build of lab
     """
 
-    def _clean():
-        subprocess.call(["jupyter", "lab", "clean", "--all"])
-        return True
-
     def _build():
         return subprocess.call() == 0
 
-    file_dep = [P.JDW_TARBALL, P.JDIO_TARBALL]
+    file_dep = sorted(P.JS_TARBALL.values())
 
     build_args = ["--dev-build=False", "--minimize=True"]
     if P.WIN:
@@ -164,25 +235,11 @@ def task_lab_build():
         file_dep=file_dep,
         uptodate=[config_changed({"exts": P.EXTENSIONS})],
         actions=[
-            _clean,
-            [
-                "jupyter",
-                "labextension",
-                "disable",
-                "@jupyterlab/extension-manager-extension",
-            ],
-            ["jupyter", "labextension", "link", "--debug", "--no-build", P.JDW, P.JDIO],
-            [
-                "jupyter",
-                "labextension",
-                "install",
-                "--debug",
-                "--no-build",
-                *P.EXTENSIONS,
-            ],
-            ["jupyter", "labextension", "list"],
-            ["jupyter", "lab", "build", "--debug", *build_args],
-            ["jupyter", "labextension", "list"],
+            P.CMD_DISABLE_EXTENSIONS,
+            P.CMD_INSTALL_ALL_EXTENSIONS,
+            P.CMD_LIST_EXTENSIONS,
+            [*P.CMD_BUILD, *build_args],
+            P.CMD_LIST_EXTENSIONS,
         ],
         targets=[P.LAB_INDEX],
     )
@@ -193,9 +250,7 @@ def task_lab():
     """
 
     def lab():
-        proc = subprocess.Popen(
-            ["jupyter", "lab", "--no-browser", "--debug"], stdin=subprocess.PIPE
-        )
+        proc = subprocess.Popen(P.CMD_LAB, stdin=subprocess.PIPE)
 
         try:
             proc.wait()
@@ -208,19 +263,31 @@ def task_lab():
 
     return dict(
         uptodate=[lambda: False],
-        file_dep=[P.LAB_INDEX],
+        file_dep=[P.LAB_INDEX, *P.OK_SERVEREXT.values()],
         actions=[PythonInteractiveAction(lab)],
     )
 
 
 def task_watch():
     def watch():
-        jlpm_proc = subprocess.Popen(["jlpm", "watch"], cwd=P.JDIO)
+        shutil.rmtree(P.LAB_STATIC, ignore_errors=True)
+        subprocess.check_call(["jupyter", "lab", "build"])
 
-        lab_proc = subprocess.Popen(
-            ["jupyter", "lab", "--no-browser", "--debug", "--watch"],
-            stdin=subprocess.PIPE,
+        for sub_ns in (P.LAB_STAGING / "node_modules" / f"@{P.JS_NS}").glob(
+            f"*/node_modules/@{P.JS_NS}"
+        ):
+            print(f"Deleting {sub_ns.relative_to(P.LAB_STAGING)}", flush=True)
+            shutil.rmtree(sub_ns)
+        else:
+            print(f"Nothing deleted in {P.LAB_STAGING}!", flush=True)
+
+        jlpm_proc = subprocess.Popen(
+            ["jlpm", "lerna", "run", "--parallel", "--stream", "watch"]
         )
+
+        build_proc = subprocess.Popen(["jlpm", "watch"], cwd=P.LAB_STAGING)
+
+        lab_proc = subprocess.Popen(P.CMD_LAB, stdin=subprocess.PIPE)
 
         try:
             lab_proc.wait()
@@ -230,21 +297,63 @@ def task_watch():
             lab_proc.communicate(b"y\n")
         finally:
             jlpm_proc.terminate()
+            build_proc.terminate()
 
         lab_proc.wait()
         jlpm_proc.wait()
+        build_proc.wait()
 
     return dict(
         uptodate=[lambda: False],
-        file_dep=[P.LAB_INDEX],
-        actions=[PythonInteractiveAction(watch)],
+        file_dep=[*P.JS_TARBALL.values(), *P.OK_SERVEREXT.values()],
+        actions=[
+            P.CMD_LIST_EXTENSIONS,
+            P.CMD_LINK_EXTENSIONS,
+            P.CMD_LIST_EXTENSIONS,
+            P.CMD_INSTALL_EXTENSIONS,
+            P.CMD_DISABLE_EXTENSIONS,
+            P.CMD_LIST_EXTENSIONS,
+            PythonInteractiveAction(watch),
+        ],
+    )
+
+
+def task_provision():
+    return _ok(
+        dict(
+            file_dep=[*P.OK_SERVEREXT.values()],
+            actions=[
+                ["jupyter", "drawio-export", "--version"],
+                ["jupyter", "drawio-export", "provision"],
+            ],
+        ),
+        P.OK_PROVISION,
     )
 
 
 def task_all():
     return dict(
-        file_dep=[P.LAB_INDEX, P.OK_LINT],
+        file_dep=[P.OK_INTEGRITY, P.OK_PROVISION],
         actions=[lambda: [print("nothing left to do"), True][1]],
+    )
+
+
+def task_integrity():
+    return _ok(
+        dict(
+            file_dep=[
+                P.SCRIPTS / "integrity.py",
+                P.LAB_INDEX,
+                P.OK_LINT,
+                *[*P.OK_SERVEREXT.values()],
+                *[*P.PY_WHEEL.values()],
+                *[*P.PY_SDIST.values()],
+            ],
+            actions=[
+                ["python", "-m", "pytest", "--pyargs", "scripts.integrity", "-vv"]
+            ],
+        ),
+        P.OK_INTEGRITY,
     )
 
 

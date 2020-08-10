@@ -1,9 +1,19 @@
-// Copyright (c) Jupyter Development Team.
-// Distributed under the terms of the Modified BSD License.
+// Copyright 2020 jupyterlab-drawio contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+import React from 'react';
 
-import React from "react";
-
-import { VDomRenderer, VDomModel } from "@jupyterlab/apputils";
+import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
 
 import {
   interactiveItem,
@@ -11,9 +21,9 @@ import {
   Popup,
   showPopup,
   TextItem,
-} from "@jupyterlab/statusbar";
+} from '@jupyterlab/statusbar';
 
-import { Menu } from "@lumino/widgets";
+import { Menu } from '@lumino/widgets';
 
 /**
  * A namespace for TabSpaceComponent statics.
@@ -48,7 +58,7 @@ function DrawioStatusComponent(
   return (
     <TextItem
       onClick={props.handleClick}
-      source={`drawio: ${props.status || "ready"}`}
+      source={`drawio: ${props.status || 'ready'}`}
       title={`TBD…`}
     />
   );
@@ -61,8 +71,8 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
   /**
    * Create a new tab/space status item.
    */
-  constructor(options: DrawioStatus.IOptions) {
-    super(new DrawioStatus.Model());
+  constructor(model: DrawioStatus.Model) {
+    super(model);
     this.addClass(interactiveItem);
   }
 
@@ -96,7 +106,7 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
     this._popup = showPopup({
       body: menu,
       anchor: this,
-      align: "right",
+      align: 'right',
     });
   }
 
@@ -110,7 +120,7 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
 
 export namespace DrawioStatus {
   export class Model extends VDomModel {
-    _status: string = "";
+    _status: string = '';
 
     get status() {
       return this._status;

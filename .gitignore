@@ -8,7 +8,9 @@ __pycache__
 *.sqlite
 *.tgz
 build/
+dist/
 envs/
 node_modules/
 untitled*
 Untitled*
+*.tsbuildinfo
