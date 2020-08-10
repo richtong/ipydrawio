@@ -59,8 +59,6 @@
 
 ### Core Lab Extensions
 
-> **Packages not released yet**. For now, see [CONTRIBUTING.md][].
-
 The core labextensions do not have any server-side dependencies.
 
 ```bash
