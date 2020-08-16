@@ -8,10 +8,6 @@ from . import project as P
 
 FOR_REAL = json.loads(os.environ.get("FOR_REAL", "0"))
 
-PYPI_REGISTRY = (
-    "https://pypi.org/legacy/" if FOR_REAL else "https://test.pypi.org/legacy/"
-)
-
 
 def upload():
     """ upload releases
@@ -20,7 +16,7 @@ def upload():
         print("Not uploading FOR_REAL: set the environment variable for a real release")
 
     for pkg, sdist in P.PY_SDIST.items():
-        args = ["twine", "upload", "--repository-url", PYPI_REGISTRY, "dist/*"]
+        args = ["twine", "upload", "dist/*"]
         cwd = str(sdist.parent.parent)
         print(">>>", " ".join(args), "\n in", cwd, flush=True)
         if FOR_REAL:

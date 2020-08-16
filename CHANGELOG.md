@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## Released 2020-08-16
 
-- basic functionality now tested with robotframework in Firefox
+- basic functionality now tested with robotframework in Firefox on
+  - Linux, Ubunut, MacOs
+  - Python 3.6 and 3.8
 
 ### jupyter-drawio-export 0.8.0-alpha1
 
