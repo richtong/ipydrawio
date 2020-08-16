@@ -1,4 +1,5 @@
 __pycache__
+.coverage
 .doit*
 .ipynb_checkpoints
 *.bundle.*
@@ -7,10 +8,11 @@ __pycache__
 *.pdf
 *.sqlite
 *.tgz
+*.tsbuildinfo
+atest/output/
 build/
 dist/
 envs/
 node_modules/
 untitled*
 Untitled*
-*.tsbuildinfo

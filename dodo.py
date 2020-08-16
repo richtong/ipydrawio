@@ -130,7 +130,9 @@ def task_lint():
         dict(
             name="prettier",
             file_dep=[P.YARN_INTEGRITY, *P.ALL_PRETTIER],
-            actions=[["jlpm", "prettier", "--write", *P.ALL_PRETTIER]],
+            actions=[
+                ["jlpm", "prettier", "--list-different", "--write", *P.ALL_PRETTIER]
+            ],
         ),
         P.OK_PRETTIER,
     )
@@ -155,6 +157,33 @@ def task_lint():
             ],
         ),
         P.OK_LINT,
+    )
+
+    yield _ok(
+        dict(
+            name="robot:tidy",
+            file_dep=P.ALL_ROBOT,
+            actions=[[*P.PYM, "robot.tidy", "--inplace", *P.ALL_ROBOT]],
+        ),
+        P.OK_ROBOTIDY,
+    )
+
+    yield _ok(
+        dict(
+            name="robot:lint",
+            file_dep=[*P.ALL_ROBOT, P.OK_ROBOTIDY],
+            actions=[["rflint", *P.RFLINT_OPTS, *P.ALL_ROBOT]],
+        ),
+        P.OK_RFLINT,
+    )
+
+    yield _ok(
+        dict(
+            name="robot:dryrun",
+            file_dep=[*P.ALL_ROBOT, P.OK_RFLINT],
+            actions=[[*P.PYM, "scripts.atest", "--dryrun"]],
+        ),
+        P.OK_ROBOT_DRYRUN,
     )
 
 
@@ -221,9 +250,6 @@ def task_lab_build():
     """ do a "production" build of lab
     """
 
-    def _build():
-        return subprocess.call() == 0
-
     file_dep = sorted(P.JS_TARBALL.values())
 
     build_args = ["--dev-build=False", "--minimize=True"]
@@ -232,16 +258,17 @@ def task_lab_build():
 
     yield dict(
         name="extensions",
-        file_dep=file_dep,
+        file_dep=[*file_dep, P.OVERRIDES],
         uptodate=[config_changed({"exts": P.EXTENSIONS})],
         actions=[
             P.CMD_DISABLE_EXTENSIONS,
             P.CMD_INSTALL_ALL_EXTENSIONS,
             P.CMD_LIST_EXTENSIONS,
+            P._override_lab,
             [*P.CMD_BUILD, *build_args],
             P.CMD_LIST_EXTENSIONS,
         ],
-        targets=[P.LAB_INDEX],
+        targets=[P.LAB_INDEX, P.LAB_OVERRIDES, P.LAB_LOCK],
     )
 
 
@@ -312,6 +339,7 @@ def task_watch():
             P.CMD_LIST_EXTENSIONS,
             P.CMD_INSTALL_EXTENSIONS,
             P.CMD_DISABLE_EXTENSIONS,
+            P._override_lab,
             P.CMD_LIST_EXTENSIONS,
             PythonInteractiveAction(watch),
         ],
@@ -333,14 +361,22 @@ def task_provision():
 
 def task_all():
     return dict(
-        file_dep=[P.OK_INTEGRITY, P.OK_PROVISION],
+        file_dep=[P.OK_INTEGRITY, P.OK_PROVISION, P.OK_ATEST, *P.OK_PYTEST.values()],
         actions=[lambda: [print("nothing left to do"), True][1]],
     )
 
 
-def task_integrity():
-    return _ok(
+def _pytest(setup_py):
+    def _test():
+        subprocess.check_call([*P.PYM, "pytest"], shell=False, cwd=str(setup_py.parent))
+
+    return _test
+
+
+def task_test():
+    yield _ok(
         dict(
+            name="integrity",
             file_dep=[
                 P.SCRIPTS / "integrity.py",
                 P.LAB_INDEX,
@@ -354,6 +390,36 @@ def task_integrity():
             ],
         ),
         P.OK_INTEGRITY,
+    )
+
+    for pkg, setup in P.PY_SETUP.items():
+        yield _ok(
+            dict(
+                name=f"pytest:{pkg}",
+                file_dep=[
+                    *P.PY_SRC[pkg],
+                    P.OK_PYSETUP[pkg],
+                    *P.PY_TEST_DEP.get(pkg, []),
+                ],
+                actions=[PythonInteractiveAction(_pytest(setup))],
+            ),
+            P.OK_PYTEST[pkg],
+        )
+
+    yield _ok(
+        dict(
+            name="robot",
+            file_dep=[
+                *P.ALL_ROBOT,
+                P.LAB_INDEX,
+                P.LAB_OVERRIDES,
+                P.OK_PROVISION,
+                P.OK_ROBOT_DRYRUN,
+                P.SCRIPTS / "atest.py",
+            ],
+            actions=[["python", "-m", "scripts.atest"]],
+        ),
+        P.OK_ATEST,
     )
 
 

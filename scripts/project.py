@@ -21,6 +21,7 @@ PREFIX = Path(sys.prefix)
 SCRIPTS = Path(__file__).parent.resolve()
 ROOT = SCRIPTS.parent
 BINDER = ROOT / "binder"
+PY_MAJOR = "".join(map(str, sys.version_info[:2]))
 
 # top-level stuff
 NODE_MODULES = ROOT / "node_modules"
@@ -29,6 +30,7 @@ PACKAGES = ROOT / "packages"
 YARN_INTEGRITY = NODE_MODULES / ".yarn-integrity"
 YARN_LOCK = ROOT / "yarn.lock"
 EXTENSIONS_FILE = BINDER / "labextensions.txt"
+OVERRIDES = ROOT / "overrides.json"
 EXTENSIONS = sorted(
     [
         line.strip()
@@ -64,6 +66,7 @@ LAB_STAGING = LAB_APP_DIR / "staging"
 LAB_LOCK = LAB_STAGING / "yarn.lock"
 LAB_STATIC = LAB_APP_DIR / "static"
 LAB_INDEX = LAB_STATIC / "index.html"
+LAB_OVERRIDES = LAB_APP_DIR / "settings" / "overrides.json"
 
 # tests
 EXAMPLES = ROOT / "notebooks"
@@ -71,6 +74,8 @@ EXAMPLE_IPYNB = [
     p for p in EXAMPLES.rglob("*.ipynb") if ".ipynb_checkpoints" not in str(p)
 ]
 DIST_NBHTML = DIST / "nbsmoke"
+ATEST = ROOT / "atest"
+ATEST_OUT = ATEST / "output"
 
 # js packages
 JS_NS = "deathbeds"
@@ -148,12 +153,13 @@ PY_VERSION = {
     for k, v in PY_SRC.items()
 }
 JDE = PY_SETUP["jupyter-drawio-export"].parent
-PY_SDIST = {JDE.name: JDE / "dist" / f"{JDE.name}-0.8.0a0.tar.gz"}
+PY_SDIST = {JDE.name: JDE / "dist" / f"{JDE.name}-0.8.0a1.tar.gz"}
 PY_WHEEL = {
     JDE.name: JDE
     / "dist"
-    / f"""{JDE.name.replace("-", "_")}-0.8.0a0-py3-none-any.whl"""
+    / f"""{JDE.name.replace("-", "_")}-0.8.0a1-py3-none-any.whl"""
 }
+PY_TEST_DEP = {}
 
 SERVER_EXT = {
     k: sorted(v.parent.glob("src/*/serverextension.py"))[0]
@@ -167,17 +173,34 @@ ALL_PY = [
     *SCRIPTS.glob("*.py"),
     *sum(JS_PY_SCRIPTS.values(), []),
     *sum(PY_SRC.values(), []),
+    *ATEST.rglob("*.py"),
 ]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
 ALL_JSON = [
     *ROOT.glob("*.json"),
     *PACKAGES.glob("*/*.json"),
     *PACKAGES.glob("*/schema/*.json"),
+    *ATEST.rglob("*.json"),
 ]
 ALL_MD = [*ROOT.glob("*.md"), *PACKAGES.glob("*/*.md"), *PY_PACKAGES.glob("*/*.md")]
 ALL_TS = sum(JS_TSSRC.values(), [])
 ALL_CSS = sum(JS_STYLE.values(), [])
+ALL_ROBOT = [*ATEST.rglob("*.robot")]
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS]
+
+RFLINT_OPTS = sum(
+    [
+        ["--ignore", c]
+        for c in [
+            "LineTooLong",
+            "RequireKeywordDocumentation",
+            "TooFewKeywordSteps",
+            "RequireKeywordDocumentation",
+            "TooFewTestSteps",
+        ]
+    ],
+    [],
+)
 
 # package: [dependencies, targets]
 JS_PKG_PACK = {k: [[v.parent / "package.json"], [v]] for k, v in JS_TARBALL.items()}
@@ -200,18 +223,26 @@ OK_BLACK = BUILD / "black.ok"
 OK_FLAKE8 = BUILD / "flake8.ok"
 OK_ISORT = BUILD / "isort.ok"
 OK_LINT = BUILD / "lint.ok"
+OK_ROBOTIDY = BUILD / "robot.tidy.ok"
 OK_PYFLAKES = BUILD / "pyflakes.ok"
 OK_PRETTIER = BUILD / "prettier.ok"
 OK_ESLINT = BUILD / "eslint.ok"
 OK_JS_BUILD_PRE = BUILD / "js.build.pre.ok"
 OK_JS_BUILD = BUILD / "js.build.ok"
 OK_PYSETUP = {k: BUILD / f"pysetup.{k}.ok" for k, v in PY_SETUP.items()}
+OK_PYTEST = {k: BUILD / f"pytest.{k}.ok" for k, v in PY_SETUP.items()}
 OK_SERVEREXT = {k: BUILD / f"serverext.{k}.ok" for k, v in SERVER_EXT.items()}
 OK_PROVISION = BUILD / "provision.ok"
+OK_ROBOT_DRYRUN = BUILD / "robot.dryrun.ok"
+OK_RFLINT = BUILD / "robot.rflint.ok"
+OK_ATEST = BUILD / "atest.ok"
+
+PY_TEST_DEP["jupyter-drawio-export"] = [OK_PROVISION, LAB_INDEX]
 
 # built artifacts
 EXAMPLE_HTML = [DIST_NBHTML / p.name.replace(".ipynb", ".html") for p in EXAMPLE_IPYNB]
 
+# long lab commands
 CMD_LINK_EXTENSIONS = [
     "jupyter",
     "labextension",
@@ -244,3 +275,13 @@ CMD_DISABLE_EXTENSIONS = [
 CMD_BUILD = ["jupyter", "lab", "build", "--debug"]
 
 CMD_LAB = ["jupyter", "lab", "--no-browser", "--debug"]
+
+
+def _override_lab():
+    if LAB_OVERRIDES.exists():
+        LAB_OVERRIDES.unlink()
+
+    if not LAB_OVERRIDES.parent.exists():
+        LAB_OVERRIDES.parent.mkdir(parents=True)
+
+    shutil.copy2(OVERRIDES, LAB_OVERRIDES)

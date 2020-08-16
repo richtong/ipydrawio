@@ -32,15 +32,38 @@ class PDFHandler(BaseHandler):
     async def post(self, url=None):
         params = {k: v[-1] for k, v in self.request.arguments.items()}
         params.pop("_xsrf", None)
-        pdf = await self.manager.pdf(params)
+        pdf = await self.manager.pdf([params])
         self.finish(pdf)
+
+
+class StatusHandler(BaseHandler):
+    async def get(self):
+        status = await self.manager.status()
+        self.finish(status)
+
+
+class ProvisionHandler(BaseHandler):
+    async def post(self):
+        await self.manager.provision()
+        status = await self.manager.status()
+        self.finish(status)
 
 
 def add_handlers(nbapp):
     """ Add drawio routes to the notebook server web application
     """
-    url = ujoin(nbapp.base_url, "drawio", "export", r"(?P<url>.*)")
+    ns_url = ujoin(nbapp.base_url, "drawio")
+    pdf_url = ujoin(ns_url, "export", r"(?P<url>.*)")
+    status_url = ujoin(ns_url, "status")
+    provision_url = ujoin(ns_url, "provision")
 
     opts = {"manager": nbapp.drawio_manager}
 
-    nbapp.web_app.add_handlers(".*", [(url, PDFHandler, opts)])
+    nbapp.web_app.add_handlers(
+        ".*",
+        [
+            (status_url, StatusHandler, opts),
+            (provision_url, ProvisionHandler, opts),
+            (pdf_url, PDFHandler, opts),
+        ],
+    )

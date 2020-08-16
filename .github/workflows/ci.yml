@@ -9,10 +9,11 @@ on:
 env:
   PYTHONUNBUFFERED: 1
   PYTHONIOENCODING: utf-8
+  ATEST_RETRIES: 3
 
 jobs:
   ci:
-    name: CI
+    name: ${{ matrix.os }} ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -21,9 +22,25 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
+        python-version:
+          - '3.6'
+          - '3.8'
     steps:
+      - name: configure line endings
+        run: |
+          git config --global core.autocrlf false
+
       - name: checkout
         uses: actions/checkout@v2
+
+      - name: cache (conda)
+        uses: actions/cache@v1
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-${{ matrix.python-version }}-
+            ${{ runner.os }}-conda-
 
       - name: cache (yarn)
         uses: actions/cache@v1
@@ -37,7 +54,10 @@ jobs:
       - name: install (conda)
         uses: goanpeca/setup-miniconda@v1.6.0
         with:
+          activate-environment: jupyterlab-drawio
           environment-file: environment.yml
+          python-version: ${{ matrix.python-version }}
+          use-only-tar-bz2: true
 
       - name: build (linux)
         if: ${{ contains(matrix.os, 'ubuntu') }}
@@ -62,3 +82,16 @@ jobs:
           call C:\Miniconda\Scripts\deactivate
           call C:\Miniconda\Scripts\activate C:\Miniconda\envs\jupyterlab-drawio
           doit all || doit all
+
+      - name: clean (windows)
+        if: ${{ contains(matrix.os, 'windows') }}
+        run: |
+          taskkill /F /IM python.exe || echo "no python"
+          taskkill /F /IM node.exe || echo "no node"
+
+      - name: report (robot)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: RF${{ github.run_number }} ${{ matrix.os }}${{ matrix.python-version }}
+          path: ./atest/output

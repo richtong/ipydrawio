@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## Unreleased
+
+- basic functionality now tested with robotframework in Firefox
+
+### jupyter-drawio-export 0.8.0-alpha1
+
+- adds statusbar item for PDF export server
+- adds status and provision endpoints
+- adds export CLI
+- requires `lxml`, `pillow`, `pypdf2` and `requests_cache`
+  - and, of course, `nodejs`
+- CLI functionality tested with pytest
+
+### @deathbeds/jupyterlab-drawio-pdf 0.8.0-alpha1
+
+- removes non-functioning editable PDF for now
+
+### @deathbeds/jupyterlab-drawio-notebook 0.8.0-alpha1
+
+### @deathbeds/jupyterlab-drawio 0.8.0-alpha1
+
+### @deathbeds/jupyterlab-drawio-webpack 13.6.2-alpha1
+
+- Drawio v13.6.2
+
 ## Released 2020-08-09
 
 ### jupyter-drawio-export 0.8.0-alpha0

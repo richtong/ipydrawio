@@ -6,14 +6,23 @@ channels:
 dependencies:
   - black
   - doit ==0.32
+  - firefox =68
   - flake8
+  - geckodriver
   - isort <5
   - jupyterlab >=2.2.4,<3.0.0a0
+  - lxml
   - nodejs >=12,<13.0.0a0
+  - pillow
   - pip
   - pyflakes
+  - pypdf2
   - pytest
+  - pytest-cov
   - python
   - requests_cache
+  - robotframework
+  - robotframework-lint
+  - robotframework-seleniumlibrary
   - twine
   - wheel
