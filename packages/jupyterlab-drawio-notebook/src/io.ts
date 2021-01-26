@@ -3,7 +3,7 @@ import { NotebookModel } from '@jupyterlab/notebook';
 import { Contents } from '@jupyterlab/services';
 
 import {
-  IDiagramManager,
+  IFormat,
   DRAWIO_ICON_CLASS_RE,
   DRAWIO_ICON_SVG,
   JSON_FACTORY,
@@ -17,7 +17,7 @@ export const drawioIpynbIcon = new LabIcon({
   svgstr: DRAWIO_ICON_SVG.replace(DRAWIO_ICON_CLASS_RE, 'jp-icon-contrast3'),
 });
 
-export const IPYNB_EDITABLE: IDiagramManager.IFormat<any> = {
+export const IPYNB_EDITABLE: IFormat<any> = {
   ext: '.dio.ipynb',
   factoryName: `${JSON_FACTORY} (Notebook)`,
   key: 'ipynb',
@@ -33,6 +33,7 @@ export const IPYNB_EDITABLE: IDiagramManager.IFormat<any> = {
   isEditable: true,
   isExport: true,
   isDefault: true,
+  isTransformed: true,
   wantsModel(contentsModel: Contents.IModel) {
     return contentsModel.type === 'notebook';
   },
@@ -52,7 +53,7 @@ export const IPYNB_EDITABLE: IDiagramManager.IFormat<any> = {
     return meta?.xml ? `${meta.xml}` : '';
   },
   exporter: async (widget, key, settings) => {
-    const xml = (widget.context.model as any).value.text;
+    const xml = widget.adapter.toXML();
     const newModel = new NotebookModel();
     newModel.metadata.set(DRAWIO_METADATA, { xml });
     return newModel.toJSON();

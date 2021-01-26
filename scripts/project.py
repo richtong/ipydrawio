@@ -17,6 +17,8 @@ OSX = PLATFORM == "Darwin"
 UNIX = not WIN
 PREFIX = Path(sys.prefix)
 
+BUILDING_IN_CI = bool(json.loads(os.environ.get("BUILDING_IN_CI", "0")))
+
 # find root
 SCRIPTS = Path(__file__).parent.resolve()
 ROOT = SCRIPTS.parent
@@ -76,6 +78,7 @@ EXAMPLE_IPYNB = [
 DIST_NBHTML = DIST / "nbsmoke"
 ATEST = ROOT / "atest"
 ATEST_OUT = ATEST / "output"
+ATEST_OUT_XML = "output.xml"
 
 # js packages
 JS_NS = "deathbeds"
@@ -153,11 +156,11 @@ PY_VERSION = {
     for k, v in PY_SRC.items()
 }
 JDE = PY_SETUP["jupyter-drawio-export"].parent
-PY_SDIST = {JDE.name: JDE / "dist" / f"{JDE.name}-0.8.0a1.tar.gz"}
+PY_SDIST = {JDE.name: JDE / "dist" / f"{JDE.name}-0.8.0a2.tar.gz"}
 PY_WHEEL = {
     JDE.name: JDE
     / "dist"
-    / f"""{JDE.name.replace("-", "_")}-0.8.0a1-py3-none-any.whl"""
+    / f"""{JDE.name.replace("-", "_")}-0.8.0a2-py3-none-any.whl"""
 }
 PY_TEST_DEP = {}
 
@@ -239,6 +242,9 @@ OK_ATEST = BUILD / "atest.ok"
 
 PY_TEST_DEP["jupyter-drawio-export"] = [OK_PROVISION, LAB_INDEX]
 
+HASH_DEPS = [*PY_WHEEL.values(), *JS_TARBALL.values()]
+SHA256SUMS = DIST / "SHA256SUMS"
+
 # built artifacts
 EXAMPLE_HTML = [DIST_NBHTML / p.name.replace(".ipynb", ".html") for p in EXAMPLE_IPYNB]
 
@@ -285,3 +291,16 @@ def _override_lab():
         LAB_OVERRIDES.parent.mkdir(parents=True)
 
     shutil.copy2(OVERRIDES, LAB_OVERRIDES)
+
+
+def get_atest_stem(attempt=1, extra_args=None, browser=None):
+    """get the directory in ATEST_OUT for this platform/apps"""
+    browser = browser or "headlessfirefox"
+    extra_args = extra_args or []
+
+    stem = f"{PLATFORM}_{PY_MAJOR}_{browser}_{attempt}"
+
+    if "--dryrun" in extra_args:
+        stem += "_dry_run"
+
+    return stem

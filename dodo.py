@@ -1,5 +1,22 @@
+"""automation for ipydrawio
+
+> see https://pydoit.org/tutorial_1.html#incremental-computation
+
+see what you can do
+
+    doit list --status --all | sort
+
+do basically everything to get ready for a release
+
+    doit all
+
+maybe before you push
+
+    doit -n8 lint
+"""
 import shutil
 import subprocess
+from hashlib import sha256
 
 from doit.action import CmdAction
 from doit.tools import PythonInteractiveAction, config_changed
@@ -15,13 +32,11 @@ DOIT_CONFIG = dict(
 
 
 def task_submodules():
-    """ ensure submodules are available
-    """
+    """ensure submodules are available"""
     subs = subprocess.check_output(["git", "submodule"]).decode("utf-8").splitlines()
 
     def _clean():
-        """ clean drawio, as it gets patched in-place
-        """
+        """clean drawio, as it gets patched in-place"""
         if any([x.startswith("-") for x in subs]) and P.DRAWIO.exists():
             shutil.rmtree(P.DRAWIO)
 
@@ -93,12 +108,13 @@ def task_setup():
 
 
 def task_lint():
-    """ format all source files
-    """
+    """format all source files"""
 
     yield _ok(
         dict(
-            name="isort", file_dep=[*P.ALL_PY], actions=[["isort", "-rc", *P.ALL_PY]],
+            name="isort",
+            file_dep=[*P.ALL_PY],
+            actions=[["isort", "-rc", *P.ALL_PY]],
         ),
         P.OK_ISORT,
     )
@@ -245,10 +261,35 @@ def task_build():
             targets=[P.PY_WHEEL[py_pkg]],
         )
 
+    def _make_hashfile():
+        # mimic sha256sum CLI
+        if P.SHA256SUMS.exists():
+            P.SHA256SUMS.unlink()
+
+        if not P.DIST.exists():
+            P.DIST.mkdir(parents=True)
+
+        [shutil.copy2(p, P.DIST / p.name) for p in P.HASH_DEPS]
+
+        lines = []
+
+        for p in P.HASH_DEPS:
+            lines += ["  ".join([sha256(p.read_bytes()).hexdigest(), p.name])]
+
+        output = "\n".join(lines)
+        print(output)
+        P.SHA256SUMS.write_text(output)
+
+    yield dict(
+        name="hash",
+        file_dep=[*P.HASH_DEPS],
+        targets=[P.SHA256SUMS],
+        actions=[_make_hashfile],
+    )
+
 
 def task_lab_build():
-    """ do a "production" build of lab
-    """
+    """do a "production" build of lab"""
 
     file_dep = sorted(P.JS_TARBALL.values())
 
@@ -273,8 +314,7 @@ def task_lab_build():
 
 
 def task_lab():
-    """ run JupyterLab "normally" (not watching sources)
-    """
+    """run JupyterLab "normally" (not watching sources)"""
 
     def lab():
         proc = subprocess.Popen(P.CMD_LAB, stdin=subprocess.PIPE)
@@ -361,7 +401,14 @@ def task_provision():
 
 def task_all():
     return dict(
-        file_dep=[P.OK_INTEGRITY, P.OK_PROVISION, P.OK_ATEST, *P.OK_PYTEST.values()],
+        uptodate=[lambda: False],
+        file_dep=[
+            P.OK_INTEGRITY,
+            P.OK_PROVISION,
+            P.OK_ATEST,
+            *P.OK_PYTEST.values(),
+            P.SHA256SUMS,
+        ],
         actions=[lambda: [print("nothing left to do"), True][1]],
     )
 

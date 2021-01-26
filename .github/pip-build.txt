@@ -1,0 +1,17 @@
+black
+doit
+flake8
+isort <5
+jupyterlab ==2.*
+lxml
+pillow
+pip
+pyflakes
+pypdf2
+pytest
+requests
+requests-cache
+robotframework
+robotframework-lint
+setuptools
+wheel

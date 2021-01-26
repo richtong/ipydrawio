@@ -16,9 +16,11 @@ import { Contents } from '@jupyterlab/services';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 import { NS, PLUGIN_ID } from '.';
-import { DiagramWidget } from './editor';
+import { Diagram } from './editor';
+import { DiagramDocument } from './document';
 
 import ICON_SVG from '../style/img/drawio.svg';
 export const CMD_NS = 'drawio';
@@ -38,56 +40,70 @@ export const DRAWIO_METADATA = NS;
  * Escape hatch for runtime debugging.
  */
 export const DEBUG = window.location.hash.indexOf('DRAWIO_DEBUG') > -1;
+export const DEBUG_LEVEL = DEBUG
+  ? window.location.hash.indexOf('DRAWIO_DEBUG')
+  : 0;
 
 export interface IDiagramManager {
-  addFormat(format: IDiagramManager.IFormat): void;
-  isExportable(mimetype: string): boolean;
-  formatForModel(
-    contentsModel: Contents.IModel
-  ): IDiagramManager.IFormat | null;
-  activeWidget: DiagramWidget | null;
+  addFormat(format: IFormat): void;
+  formatForModel(contentsModel: Partial<Contents.IModel>): IFormat | null;
+  activeWidget: DiagramDocument | null;
   drawioURL: string;
+  settings: ISettingRegistry.ISettings;
 }
 
 export const DRAWIO_ICON_CLASS_RE = /jp-icon-warn0/;
 
 export const IDiagramManager = new Token<IDiagramManager>(PLUGIN_ID);
 
-export namespace IDiagramManager {
-  export interface IOptions {}
-  export interface IFormat<T = string> {
-    key: string;
-    name: string;
-    ext: string;
-    label: string;
-    icon: LabIcon;
-    format: Contents.FileFormat;
-    mimetype: string;
-    pattern?: string;
-    contentType?: Contents.ContentType;
-    save?: (raw: string) => string;
-    load?: (raw: string) => string;
-    toXML?: (model: DocumentRegistry.IModel) => string;
-    fromXML?: (model: DocumentRegistry.IModel, xml: string) => void;
-    exporter?: (
-      drawio: DiagramWidget,
-      key: string,
-      settings: ISettingRegistry.ISettings
-    ) => Promise<T | null>;
-    // factory info
-    factoryName: string;
-    modelName: 'base64' | 'notebook' | 'text';
-    wantsModel?(contentsModel: Contents.IModel): boolean;
-    // behavior switches
-    isExport?: boolean;
-    isBinary?: boolean;
-    isText?: boolean;
-    isJson?: boolean;
-    isEditable?: boolean;
-    isDefault?: boolean;
-  }
-}
-
 export namespace CommandIds {
   export const createNew = 'drawio:create-new';
+}
+
+export namespace IDiagramManager {
+  export interface IOptions {}
+}
+
+export interface IFormat<T = string> {
+  key: string;
+  name: string;
+  ext: string;
+  label: string;
+  icon: LabIcon;
+  format: Contents.FileFormat;
+  mimetype: string;
+  pattern?: string;
+  contentType?: Contents.ContentType;
+  save?: (raw: string) => string;
+  load?: (raw: string) => string;
+  toXML?: (model: DocumentRegistry.IModel) => string;
+  fromXML?: (model: DocumentRegistry.IModel, xml: string) => void;
+  exporter?: (
+    drawio: Diagram,
+    key: string,
+    settings: ISettingRegistry.ISettings
+  ) => Promise<T | null>;
+  // factory info
+  factoryName: string;
+  modelName: 'base64' | 'notebook' | 'text';
+  wantsModel?(contentsModel: Partial<Contents.IModel>): boolean;
+  // behavior switches
+  isExport?: boolean;
+  isBinary?: boolean;
+  isText?: boolean;
+  isJson?: boolean;
+  isEditable?: boolean;
+  isDefault?: boolean;
+  isTransformed: boolean;
+}
+
+export interface IAdapter {
+  format(): IFormat | null;
+  // TODO: generate these from schema
+  drawioConfig(): ReadonlyPartialJSONObject;
+  urlParams(): ReadonlyPartialJSONObject;
+  saveNeedsExport(): boolean;
+  toXML(): string;
+  drawioUrl(): string;
+  fromXML(xml: string, hardSave: boolean): void;
 }
