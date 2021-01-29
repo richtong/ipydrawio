@@ -28,7 +28,7 @@ DOIT_CONFIG = dict(
     backend="sqlite3",
     verbosity=2,
     par_type="thread",
-    default_tasks=["setup", "lint"],
+    default_tasks=["setup"],
 )
 
 
@@ -311,6 +311,17 @@ if not P.TESTING_IN_CI:
             P.OK_JS_BUILD,
         )
 
+        yield dict(
+            name="readme:ipydrawio",
+            file_dep=[P.README],
+            targets=[P.IPD / "README.md"],
+            actions=[
+                lambda: [(P.IPD / "README.md").write_text(P.README.read_text()), None][
+                    -1
+                ]
+            ],
+        )
+
         for pkg, (file_dep, targets) in P.JS_PKG_PACK.items():
             yield dict(
                 name=f"pack:{pkg}",
@@ -368,6 +379,8 @@ if not P.TESTING_IN_CI:
                         py_setup,
                         py_setup.parent / "setup.cfg",
                         py_setup.parent / "MANIFEST.in",
+                        py_setup.parent / "README.md",
+                        py_setup.parent / "LICENSE.txt",
                     ]
                 )
             )
@@ -573,6 +586,7 @@ def task_test():
         *P.ALL_ROBOT,
         P.OK_PROVISION,
         *sum(P.PY_SRC.values(), []),
+        *sum(P.JS_TSSRC.values(), []),
         P.SCRIPTS / "atest.py",
     ]
 
