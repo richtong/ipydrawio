@@ -2,13 +2,17 @@ __pycache__
 .coverage
 .doit*
 .ipynb_checkpoints
+.pabotsuitenames
 *.bundle.*
 *.egg-info/
+*.isorted
 *.log
 *.pdf
 *.sqlite
 *.tgz
 *.tsbuildinfo
+**/*DRAWIO_DEBUG*
+**/labextensions/**
 atest/output/
 build/
 dist/
@@ -16,4 +20,3 @@ envs/
 node_modules/
 untitled*
 Untitled*
-.pabotsuitenames

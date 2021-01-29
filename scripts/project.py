@@ -18,6 +18,14 @@ UNIX = not WIN
 PREFIX = Path(sys.prefix)
 
 BUILDING_IN_CI = bool(json.loads(os.environ.get("BUILDING_IN_CI", "0")))
+TESTING_IN_CI = bool(json.loads(os.environ.get("TESTING_IN_CI", "0")))
+CI_ARTIFACT = os.environ.get("CI_ARTIFACT", "wheel")
+
+# test arg pass-throughs
+ATEST_ARGS = json.loads(os.environ.get("ATEST_ARGS", "[]"))
+ATEST_RETRIES = int(os.environ.get("ATEST_RETRIES") or "0")
+PYTEST_ARGS = json.loads(os.environ.get("PYTEST_ARGS", "[]"))
+ATEST_PROCS = int(os.environ.get("ATEST_PROCS", "4"))
 
 # find root
 SCRIPTS = Path(__file__).parent.resolve()
@@ -31,15 +39,7 @@ PACKAGE = ROOT / "package.json"
 PACKAGES = ROOT / "packages"
 YARN_INTEGRITY = NODE_MODULES / ".yarn-integrity"
 YARN_LOCK = ROOT / "yarn.lock"
-EXTENSIONS_FILE = BINDER / "labextensions.txt"
 OVERRIDES = ROOT / "overrides.json"
-EXTENSIONS = sorted(
-    [
-        line.strip()
-        for line in EXTENSIONS_FILE.read_text().strip().splitlines()
-        if line and not line.startswith("#")
-    ]
-)
 CI = ROOT / ".github"
 DODO = ROOT / "dodo.py"
 BUILD = ROOT / "build"
@@ -57,18 +57,11 @@ NPM = (
     or shutil.which("npm.bat")
 )
 JLPM = ["jlpm"]
+LERNA = [*JLPM, "lerna"]
 JLPM_INSTALL = [*JLPM, "--ignore-optional", "--prefer-offline"]
 LAB_EXT = ["jupyter", "labextension"]
 LAB = ["jupyter", "lab"]
 PRETTIER = [str(NODE_MODULES / ".bin" / "prettier")]
-
-# lab stuff
-LAB_APP_DIR = PREFIX / "share/jupyter/lab"
-LAB_STAGING = LAB_APP_DIR / "staging"
-LAB_LOCK = LAB_STAGING / "yarn.lock"
-LAB_STATIC = LAB_APP_DIR / "static"
-LAB_INDEX = LAB_STATIC / "index.html"
-LAB_OVERRIDES = LAB_APP_DIR / "settings" / "overrides.json"
 
 # tests
 EXAMPLES = ROOT / "notebooks"
@@ -77,12 +70,12 @@ EXAMPLE_IPYNB = [
 ]
 DIST_NBHTML = DIST / "nbsmoke"
 ATEST = ROOT / "atest"
-ATEST_OUT = ATEST / "output"
+ATEST_OUT = BUILD / "atest"
 ATEST_OUT_XML = "output.xml"
 
 # js packages
 JS_NS = "deathbeds"
-JDIO = PACKAGES / "jupyterlab-drawio"
+IPYDIO = PACKAGES / "ipydrawio"
 
 # so many js packages
 JS_PKG_JSON = {p.parent.name: p for p in PACKAGES.glob("*/package.json")}
@@ -95,6 +88,12 @@ JS_PKG_JSON_LABEXT = {
     k: v
     for k, v in JS_PKG_JSON.items()
     if JS_PKG_DATA[k].get("jupyterlab", {}).get("extension")
+}
+
+JS_LABEXT_PY_HOST = {
+    k: JS_PKG_DATA[k]["jupyterlab"]["discovery"]["server"]["base"]["name"]
+    for k, v in JS_PKG_JSON.items()
+    if JS_PKG_DATA[k].get("jupyterlab", {}).get("discovery")
 }
 
 JS_PKG_NOT_META = {k: v for k, v in JS_PKG_JSON.items() if k.startswith("_")}
@@ -134,14 +133,14 @@ JS_PY_SCRIPTS = {
     if (v.parent / "scripts").exists()
 }
 
-# special things for jupyterlab-drawio-webpack
-JDW = JS_PKG_JSON["jupyterlab-drawio-webpack"].parent
-JDW_APP = JDW / "drawio/src/main/webapp/js/app.min.js"
-JDW_PY = (JDW / "scripts").rglob("*.py")
-DRAWIO = JDW / "drawio"
-JDW_LIB = JDW / "lib"
-JDW_IGNORE = JDW / ".npmignore"
-ALL_JDW_JS = JDW_LIB.glob("*.js")
+# special things for ipydrawio-webpack
+IPDW = JS_PKG_JSON["ipydrawio-webpack"].parent
+IPDW_APP = IPDW / "drawio/src/main/webapp/js/app.min.js"
+IPDW_PY = (IPDW / "scripts").rglob("*.py")
+DRAWIO = IPDW / "drawio"
+IPDW_LIB = IPDW / "lib"
+IPDW_IGNORE = IPDW / ".npmignore"
+ALL_IPDW_JS = IPDW_LIB.glob("*.js")
 
 PY_PACKAGES = ROOT / "py_packages"
 
@@ -155,12 +154,21 @@ PY_VERSION = {
     )[0]
     for k, v in PY_SRC.items()
 }
-JDE = PY_SETUP["jupyter-drawio-export"].parent
-PY_SDIST = {JDE.name: JDE / "dist" / f"{JDE.name}-0.8.0a2.tar.gz"}
+
+IPD = PY_SETUP["ipydrawio"].parent
+IPDE = PY_SETUP["ipydrawio-export"].parent
+
+PY_SDIST = {
+    IPDE.name: IPDE / "dist" / f"{IPDE.name}-1.0.0a0.tar.gz",
+    IPD.name: IPD / "dist" / f"{IPD.name}-1.0.0a0.tar.gz",
+}
 PY_WHEEL = {
-    JDE.name: JDE
+    IPDE.name: IPDE
     / "dist"
-    / f"""{JDE.name.replace("-", "_")}-0.8.0a2-py3-none-any.whl"""
+    / f"""{IPDE.name.replace("-", "_")}-1.0.0a0-py3-none-any.whl""",
+    IPD.name: IPD
+    / "dist"
+    / f"""{IPD.name.replace("-", "_")}-1.0.0a0-py3-none-any.whl""",
 }
 PY_TEST_DEP = {}
 
@@ -170,26 +178,36 @@ SERVER_EXT = {
     if sorted(v.parent.glob("src/*/serverextension.py"))
 }
 
-# mostly linting
+
+def NOT_LABEXTENSIONS(paths):
+    return [p for p in paths if "labextensions" not in str(p)]
+
+
 ALL_PY = [
-    DODO,
+    *ATEST.rglob("*.py"),
+    *IPDW_PY,
     *SCRIPTS.glob("*.py"),
     *sum(JS_PY_SCRIPTS.values(), []),
     *sum(PY_SRC.values(), []),
-    *ATEST.rglob("*.py"),
+    DODO,
 ]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
 ALL_JSON = [
     *ROOT.glob("*.json"),
     *PACKAGES.glob("*/*.json"),
     *PACKAGES.glob("*/schema/*.json"),
-    *ATEST.rglob("*.json"),
+    *ATEST.glob("fixtures/*.json"),
 ]
-ALL_MD = [*ROOT.glob("*.md"), *PACKAGES.glob("*/*.md"), *PY_PACKAGES.glob("*/*.md")]
+ALL_MD = [
+    *ROOT.glob("*.md"),
+    *PACKAGES.glob("*/*.md"),
+    *NOT_LABEXTENSIONS(PY_PACKAGES.glob("*/*.md")),
+]
 ALL_TS = sum(JS_TSSRC.values(), [])
 ALL_CSS = sum(JS_STYLE.values(), [])
 ALL_ROBOT = [*ATEST.rglob("*.robot")]
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS]
+ESLINTRC = ROOT / ".eslintrc.js"
 
 RFLINT_OPTS = sum(
     [
@@ -212,14 +230,15 @@ JS_PKG_PACK = {k: [[v.parent / "package.json"], [v]] for k, v in JS_TARBALL.item
     for k, v in JS_TSBUILDINFO.items()
     if not k.startswith("_")
 ]
-JS_PKG_PACK[JDW.name][0] += [
-    JDW_IGNORE,
-    JDW_APP,
-    *ALL_JDW_JS,
+JS_PKG_PACK[IPDW.name][0] += [
+    IPDW_IGNORE,
+    IPDW_APP,
+    *ALL_IPDW_JS,
 ]
 
 
 # built files
+OK_PIP_CHECK = BUILD / "pip.check.ok"
 OK_INTEGRITY = BUILD / "integrity.ok"
 OK_SUBMODULES = BUILD / "submodules.ok"
 OK_BLACK = BUILD / "black.ok"
@@ -240,57 +259,19 @@ OK_ROBOT_DRYRUN = BUILD / "robot.dryrun.ok"
 OK_RFLINT = BUILD / "robot.rflint.ok"
 OK_ATEST = BUILD / "atest.ok"
 
-PY_TEST_DEP["jupyter-drawio-export"] = [OK_PROVISION, LAB_INDEX]
+OK_EXT_BUILD = {k: BUILD / f"ext.build.{k}.ok" for k in JS_LABEXT_PY_HOST}
 
-HASH_DEPS = [*PY_WHEEL.values(), *JS_TARBALL.values()]
+PY_TEST_DEP["ipydrawio-export"] = [OK_PROVISION]
+
+HASH_DEPS = [*PY_SDIST.values(), *PY_WHEEL.values(), *JS_TARBALL.values()]
 SHA256SUMS = DIST / "SHA256SUMS"
 
 # built artifacts
 EXAMPLE_HTML = [DIST_NBHTML / p.name.replace(".ipynb", ".html") for p in EXAMPLE_IPYNB]
 
-# long lab commands
-CMD_LINK_EXTENSIONS = [
-    "jupyter",
-    "labextension",
-    "link",
-    "--debug",
-    "--no-build",
-    *[v.parent for k, v in JS_PKG_JSON_LABEXT.items()],
-]
-
-CMD_INSTALL_EXTENSIONS = [
-    "jupyter",
-    "labextension",
-    "install",
-    "--debug",
-    "--no-build",
-    *EXTENSIONS,
-]
-
-CMD_INSTALL_ALL_EXTENSIONS = [*CMD_INSTALL_EXTENSIONS, *JS_TARBALL.values()]
-
 CMD_LIST_EXTENSIONS = ["jupyter", "labextension", "list"]
 
-CMD_DISABLE_EXTENSIONS = [
-    "jupyter",
-    "labextension",
-    "disable",
-    "@jupyterlab/extension-manager-extension",
-]
-
-CMD_BUILD = ["jupyter", "lab", "build", "--debug"]
-
 CMD_LAB = ["jupyter", "lab", "--no-browser", "--debug"]
-
-
-def _override_lab():
-    if LAB_OVERRIDES.exists():
-        LAB_OVERRIDES.unlink()
-
-    if not LAB_OVERRIDES.parent.exists():
-        LAB_OVERRIDES.parent.mkdir(parents=True)
-
-    shutil.copy2(OVERRIDES, LAB_OVERRIDES)
 
 
 def get_atest_stem(attempt=1, extra_args=None, browser=None):

@@ -1,0 +1,71 @@
+{
+  "author": "Dead Pixels Collective",
+  "bugs": {
+    "url": "https://github.com/deathbeds/ipydrawio/issues"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "3",
+    "@jupyterlab/launcher": "3",
+    "@jupyterlab/mainmenu": "3"
+  },
+  "description": "A JupyterLab extension for embedding interactive drawio / mxgraph diagrams.",
+  "devDependencies": {
+    "@jupyterlab/builder": "^3.0.2",
+    "typescript": "~4.1.3",
+    "@jupyter-widgets/base": "4",
+    "@jupyter-widgets/controls": "3",
+    "@jupyter-widgets/jupyterlab-manager": "3"
+  },
+  "peerDependencies": {
+    "@deathbeds/ipydrawio-webpack": "^14.2.6-alpha0",
+    "@jupyter-widgets/base": "4",
+    "@jupyter-widgets/controls": "3",
+    "@jupyter-widgets/jupyterlab-manager": "3"
+  },
+  "files": [
+    "{lib,schema,style,src}/**/*.{ts,tsx,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,css}",
+    "LICENSE.txt"
+  ],
+  "homepage": "https://github.com/deathbeds/ipydrawio",
+  "jupyterlab": {
+    "extension": "lib/plugin.js",
+    "mimeExtension": "lib/mime.js",
+    "schemaDir": "schema",
+    "outputDir": "../../py_packages/ipydrawio/src/ipydrawio/labextensions/@deathbeds/ipydrawio",
+    "sharedPackages": {
+      "@deathbeds/ipydrawio-webpack": {
+        "bundled": false,
+        "singleton": true
+      },
+      "@jupyter-widgets/base": {
+        "bundled": false,
+        "singleton": true
+      }
+    },
+    "discovery": {
+      "server": {
+        "base": {
+          "name": "ipydrawio"
+        },
+        "managers": [
+          "pip",
+          "conda"
+        ]
+      }
+    }
+  },
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "name": "@deathbeds/ipydrawio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deathbeds/ipydrawio.git"
+  },
+  "types": "lib/index.d.ts",
+  "version": "1.0.0-alpha0"
+}

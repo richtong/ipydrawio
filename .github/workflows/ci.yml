@@ -7,13 +7,15 @@ on:
       - master
 
 env:
-  PYTHONUNBUFFERED: 1
-  PYTHONIOENCODING: utf-8
+  PYTHONUNBUFFERED: '1'
+  PYTHONIOENCODING: 'utf-8'
   PIP_DISABLE_PIP_VERSION_CHECK: '1'
 
   # our stuff
-  ATEST_RETRIES: 3
-  CACHE_EPOCH: 0
+  ATEST_RETRIES: '3'
+  CACHE_EPOCH: '0'
+  DOIT_N_BUILD: '-n4'
+  DOIT_N_TEST: '-n4'
 
 jobs:
   build:
@@ -27,7 +29,7 @@ jobs:
       run:
         shell: bash -l {0}
     env:
-      BUILDING_IN_CI: 1
+      BUILDING_IN_CI: '1'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -59,7 +61,8 @@ jobs:
         id: cache-node-modules
         with:
           path: '**/node_modules'
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', '.gitub/pip-build.txt') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-${{ runner.os }}-node-build-${{ hashFiles('yarn.lock', '.gitub/pip-build.txt') }}
 
       - name: cache (yarn)
         uses: actions/cache@v1
@@ -67,7 +70,8 @@ jobs:
         id: cache-yarn-packages
         with:
           path: .yarn-packages
-          key: ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: |
+            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
             ${{ env.CACHE_EPOCH }}-yarn-
@@ -95,7 +99,7 @@ jobs:
         run: doit list --all --status
 
       - name: build
-        run: doit -n4 build:hash || doit build:hash
+        run: doit ${{ matrix.DOIT_N_BUILD }} dist || doit dist
 
       - name: status
         run: doit list --all --status | sort
@@ -116,6 +120,13 @@ jobs:
       matrix:
         os: ['ubuntu', 'macos', 'windows']
         python-version: ['3.6', '3.8']
+        include:
+          - python-version: '3.6'
+            CI_ARTIFACT: 'sdist'
+          - python-version: '3.8'
+            CI_ARTIFACT: 'wheel'
+    env:
+      TESTING_IN_CI: '1'
     steps:
       - name: configure line endings
         run: |
@@ -133,43 +144,40 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_EPOCH }}-${{ runner.os }}-conda-${{ matrix.python-version }}-
 
-      - name: cache (yarn)
-        uses: actions/cache@v1
-        with:
-          path: .yarn-packages
-          key: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ env.CACHE_EPOCH }}-yarn-${{ runner.os }}-
-            ${{ env.CACHE_EPOCH }}-yarn-
-
       - name: install (conda)
         uses: conda-incubator/setup-miniconda@master
         with:
+          condarc-file: .github/.condarc
           miniforge-variant: Mambaforge
           miniforge-version: latest
-          mamba-version: '*'
           python-version: ${{ matrix.python-version }}
           environment-file: environment.yml
           use-only-tar-bz2: true
 
-      - name: build (linux)
+      - uses: actions/download-artifact@v2
+        with:
+          name: ipydrawio ${{ github.run_number }} dist
+          path: ./dist
+
+      - name: test (linux)
         if: ${{ contains(matrix.os, 'ubuntu') }}
         shell: bash -l {0}
         run: |
-          doit all || doit all
+          doit $DOIT_N_TEST test || doit test
 
-      - name: build (macos)
+      - name: test (macos)
         if: ${{ contains(matrix.os, 'macos') }}
         shell: bash -l {0}
         run: |
-          doit all || doit all
+          doit $DOIT_N_TEST test || doit test
 
-      - name: build (windows)
+      - name: test (windows)
         if: ${{ contains(matrix.os, 'windows') }}
         shell: cmd /C CALL {0}
+        env:
+          DOIT_N_TEST: '1'
         run: |
-          doit all || doit all
+          doit %DOIT_N_TEST% test || doit test
 
       - name: clean (windows)
         if: ${{ contains(matrix.os, 'windows') }}
@@ -177,9 +185,11 @@ jobs:
           taskkill /F /IM python.exe || echo "no python"
           taskkill /F /IM node.exe || echo "no node"
 
-      - name: report (robot)
+      - name: report (atest)
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ipydrawio ${{ github.run_number }} atest ${{ matrix.os }}${{ matrix.python-version }}
-          path: ./atest/output
+          name:
+            ipydrawio ${{ github.run_number }} atest ${{ matrix.os }}${{
+            matrix.python-version }}
+          path: ./build/atest

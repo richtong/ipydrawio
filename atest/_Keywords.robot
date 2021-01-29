@@ -30,7 +30,7 @@ Setup Server and Browser
     Set Global Variable    ${SERVER}    ${server}
     Open JupyterLab
     ${script} =    Get Element Attribute    id:jupyter-config-data    innerHTML
-    ${config} =    Evaluate    __import__("json").loads("""${script}""")
+    ${config} =    Evaluate    __import__("json").loads(r"""${script}""")
     Set Global Variable    ${PAGE CONFIG}    ${config}
     Set Global Variable    ${LAB VERSION}    ${config["appVersion"]}
 
@@ -38,8 +38,10 @@ Create Lab Launch Command
     [Arguments]    ${root}
     [Documentation]    Create a JupyterLab CLI shell string, escaping for traitlets
     ${WORKSPACES DIR} =    Set Variable    ${OUTPUT DIR}${/}workspaces
-    ${app args} =    Set Variable    --no-browser --debug --NotebookApp.base_url\='${BASE}' --port\=${PORT} --NotebookApp.token\='${TOKEN}'
-    ${path args} =    Set Variable    --LabApp.user_settings_dir='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
+    ${app args} =    Set Variable
+    ...    --no-browser --debug --ServerApp.base_url\='${BASE}' --port\=${PORT} --ServerApp.token\='${TOKEN}'
+    ${path args} =    Set Variable
+    ...    --LabApp.user_settings_dir\='${SETTINGS DIR.replace('\\', '\\\\')}' --LabApp.workspaces_dir\='${WORKSPACES DIR.replace('\\', '\\\\')}'
     ${cmd} =    Set Variable    jupyter-lab ${app args} ${path args}
     [Return]    ${cmd}
 
@@ -55,7 +57,15 @@ Setup Suite For Screenshots
 
 Initialize User Settings
     Set Suite Variable    ${SETTINGS DIR}    ${OUTPUT DIR}${/}user-settings    children=${True}
-    Create File    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings    {"styleActiveLine": true}
+    Create File
+    ...    ${SETTINGS DIR}${/}@jupyterlab${/}codemirror-extension${/}commands.jupyterlab-settings
+    ...    {"styleActiveLine": true}
+    Create File
+    ...    ${SETTINGS DIR}${/}@jupyterlab${/}extensionmanager-extension${/}plugin.jupyterlab-settings
+    ...    {"enabled": false}
+    Create File
+    ...    ${SETTINGS DIR}${/}@jupyterlab${/}apputils-extension${/}palette.jupyterlab-settings
+    ...    {"modal": false}
 
 Reset Plugin Settings
     Create File    ${SETTINGS DIR}${/}${LSP PLUGIN SETTINGS FILE}    {}
@@ -102,6 +112,10 @@ Close All Tabs
 
 Try to Close All Tabs
     Wait Until Keyword Succeeds    5x    50ms    Close All Tabs
+
+Maybe Reset Application State
+    ${pabot} =    Get Variable Value    ${PABOTEXECUTIONPOOLID}    ${EMPTY}
+    Run Keyword If    not(len("${pabot}"))    Reset Application State
 
 Reset Application State
     Try to Close All Tabs

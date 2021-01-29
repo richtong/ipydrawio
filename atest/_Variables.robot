@@ -25,8 +25,8 @@ ${DIALOG ACCEPT}    css:button.jp-Dialog-button.jp-mod-accept
 ${MENU EDITOR}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "Editor")]
 ${MENU SETTINGS}    xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contains(text(), "Settings")]
 # settings
-${DIO PLUGIN ID}    @deathbeds/jupyterlab-drawio:plugin
-${DIO PLUGIN SETTINGS FILE}    @deathbeds${/}jupyterlab-drawio${/}plugin.jupyterlab-settings
+${DIO PLUGIN ID}    @deathbeds/ipydrawio:plugin
+${DIO PLUGIN SETTINGS FILE}    @deathbeds${/}ipydrawio${/}plugin.jupyterlab-settings
 ${CSS USER SETTINGS}    .jp-SettingsRawEditor-user
 ${JLAB XP CLOSE SETTINGS}    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[contains(@class, 'm-TabBar-tabCloseIcon')]
 # launcher
@@ -38,8 +38,8 @@ ${CSS DIO READY}    css:.jp-Diagram-ready
 ${CSS DIO IFRAME}    ${CSS DIO READY} iframe
 # drawio
 ${CSS DIO BG}     css:.geBackgroundPage
-${CSS DIO SHAPE MENU}    css:.geToolbarContainer.geSidebarContainer.geSidebar
-${CSS DIO SHAPE MENU SHAPE}    ${CSS DIO SHAPE MENU} .geItem
+${CSS DIO SHAPE POPUP}    css:.geToolbarContainer.geSidebarContainer.geSidebar
+${CSS DIO SHAPE POPUP SHAPE}    ${CSS DIO SHAPE POPUP} .geItem
 ${CSS DIO EDITABLE}    css:.mxCellEditor.geContentEditable
 # from jupyterlibrary
 ${JLAB CSS ACCEPT}    .jp-mod-accept
@@ -61,6 +61,11 @@ ${JLAB ID SPLASH}    jupyterlab-splash
 ${JLAB TEXT BUSY PROMPT}    In [*]:
 ${JLAB XP CARD}    //div[@class='jp-LauncherCard']
 ${JLAB XP DOCK}    //div[@id='jp-main-dock-panel']
+${JW XP ACCORD CHILD}    //div[contains(@class, '-Accordion-child')]
+${JW XP ACCORD CHILD HEAD}    ${JW XP ACCORD CHILD}/div[contains(@class, 'p-Collapse-header')]
 # notebook
 ${JLAB CSS ICON ADD}    .jp-ToolbarButtonComponent [data-icon='ui-components:add']
 ${JLAB CSS ICON RUN}    .jp-ToolbarButtonComponent [data-icon='ui-components:run']
+${XP DIO PAGE SIZE}    //div[contains(@class, "geFormatSection")][contains(., "Paper Size")]//select
+# mime
+${MIME STDERR}    application/vnd.jupyter.stderr
