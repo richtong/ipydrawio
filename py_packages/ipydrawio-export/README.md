@@ -1,6 +1,15 @@
-# ipydrawio-export
+# IPyDrawio Export
 
-> PDF export of [drawio](https://www.diagrams.net) diagrams for Jupyter.
+> PDF export of [drawio](https://www.diagrams.net) diagrams for JupyterLab.
+
+---
+
+[![install from pypi][pypi-badge]][pypi]
+
+[pypi-badge]: https://img.shields.io/pypi/v/ipydrawio-export
+[pypi]: https://pypi.org/project/ipydrawio-export
+
+---
 
 See the [project repo](https://github.com/deathbeds/ipydrawio) for more
 information.
@@ -18,10 +27,14 @@ _should_ be automatically configured. If problems arise, it can be manually
 _enabled_:
 
 ```bash
-jupyter serverextension list   # If you don't see it here...
-jupyter serverextension enable --sys-prefix --py ipydrawio_export  # run this...
-jupyter serverextension list   # ... then check it again
+jupyter server extension list   # If you don't see it here...
+jupyter server extension enable --sys-prefix --py ipydrawio_export  # run this...
+jupyter server extension list   # ... then check it again
 ```
+
+> Note: If you are starting your server with `jupyter notebook` (not
+> `jupyter lab`), the commands above will be `serverextension` instead of
+> `server extension`!
 
 ## Command-Line Usage
 
@@ -51,6 +64,23 @@ when building a `docker` container).
 ```bash
 jupyter ipydrawio-export provision
 ```
+
+### Provision locations
+
+If defined, these environment variables will be respected, and an
+`ipydrawio_export` folder will be created:
+
+- `$JUPYTER_DATA_DIR`
+- `$IPYDRAWIO_DATA_DIR`
+
+Otherwise, `ipydrawio-export` will provision its files into
+`{sys.prefix}/ipydrawio_export`.
+
+Of note:
+
+- access to the internet is required
+- this location must be writeable by the user
+- there must be about 400MiB available, primarily for `puppeteer`'s `chromium`
 
 ## Open Source
 
