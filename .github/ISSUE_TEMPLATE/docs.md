@@ -1,6 +1,7 @@
 ---
 name: Documentation request
 about: Ask for clarification in documentation
+labels: documentation
 ---
 
 <!--
