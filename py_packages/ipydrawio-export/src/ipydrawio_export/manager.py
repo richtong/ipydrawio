@@ -48,7 +48,11 @@ VEND = Path(__file__).parent / "vendor" / "draw-image-export2"
 
 DRAWIO_STATIC = (Path(get_app_dir()) / DRAWIO_APP).resolve()
 
-JLPM = shutil.which("jlpm")
+JLPM = Path(shutil.which("jlpm")).resolve()
+
+NODE = Path(
+    shutil.which("node") or shutil.which("node.exe") or shutil.which("node.cmd")
+).resolve()
 
 
 class IPyDrawioExportManager(LoggingConfigurable):
@@ -63,6 +67,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
     attach_xml = Bool().tag(config=True)
     is_provisioning = Bool(False)
     is_starting = Bool(False)
+    init_wait_sec = Int(2).tag(config=True)
     _server = Instance(subprocess.Popen, allow_none=True)
     _session = Instance(Session)
 
@@ -72,7 +77,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
         atexit.register(self.stop_server)
 
     async def pdf(self, pdf_requests):
-        if not self._server:
+        if not self._server:  # pragma: no cover
             await self.start_server()
 
         for pdf_request in pdf_requests:
@@ -116,7 +121,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
         return url
 
     @default("_session")
-    def _default_session(self):
+    def _default_session(self):  # pragma: no cover
         if self.pdf_cache is not None:
             self.log.debug("[ipydrawio-export] requests session: cached")
             return CachedSession(self.pdf_cache, allowable_methods=["POST"])
@@ -154,15 +159,37 @@ class IPyDrawioExportManager(LoggingConfigurable):
         """
         data = dict(pdf_request)
         data.update(**self.core_params)
-        for i in range(3):
-            r = self._session.post(self.url, timeout=None, data=data)
+        status_code = None
+        pdf_text = None
+        res = None
 
-            if r.status_code != 200:
-                self.log.warning(f"[ipydrawio] HTTP: {r.status_code} {r.text}")
-                time.sleep(i * 5)
+        retries = 3
 
-        pdf_text = r.text
-        self.log.debug("[ipydrawio] PDF-in-text %s bytes", len(r.text))
+        while retries:
+            if self._server.returncode is not None:  # pragma: no cover
+                self.start_server()
+                time.sleep(self.init_wait_sec)
+            try:
+                res = self._session.post(self.url, timeout=None, data=data)
+                pdf_text = res.text
+                status_code = res.status_code
+            except Exception as err:  # pragma: no cover
+                self.log.warning(f"[ipydrawio-export] Pre-HTTP Error: {err}")
+                time.sleep((retries - 3) * self.init_wait_sec)
+            if status_code is not None:
+                if status_code <= 400:
+                    break
+                elif res:  # pragma: no cover
+                    self.log.warning(
+                        f"[ipydrawio-export] HTTP {res.status_code}: {res.text}"
+                    )
+                else:
+                    self.log.warning("[ipydrawio-export] retrying...")
+
+            retries -= 1
+
+        if res:
+            self.log.debug(f"[ipydrawio-export] PDF-in-text {len(res.text)} bytes")
 
         return pdf_text
 
@@ -258,29 +285,32 @@ class IPyDrawioExportManager(LoggingConfigurable):
         if not self.is_provisioned:
             await self.provision()
 
-        env = dict(os.environ)
-        env.update(
-            PORT=str(self.drawio_port),
-            DRAWIO_SERVER_URL=self.drawio_server_url,
+        self._start_process()
+
+        self.log.warning(
+            f"[ipydrawio-export] waiting {self.init_wait_sec}s for server to start"
         )
 
-        self._server = subprocess.Popen(
-            [JLPM, "--silent", "start"], cwd=str(self.drawio_export_app), env=env
-        )
-
-        response = None
-        while response is None:
-            self.log.warning("[ipydrawio-export] waiting for initial response")
-            await asyncio.sleep(2)
-
-            try:
-                response = self._session.get(self.url, timeout=1)
-            except Exception:
-                pass
+        await asyncio.sleep(self.init_wait_sec)
 
         self.log.warning("[ipydrawio-export] server started")
 
         self.is_starting = False
+
+    def _start_process(self):
+        env = dict(os.environ)
+        env_updates = dict(
+            PORT=str(self.drawio_port),
+            DRAWIO_SERVER_URL=self.drawio_server_url,
+            NODE_ENV="production",
+        )
+        env.update(env_updates)
+
+        self.log.debug(f"[ipydrawio-export] extra env: {env_updates}")
+
+        args = [NODE, self.drawio_export_app / "export.js"]
+        self._server = subprocess.Popen([*map(str, args)], env=env)
+        return self._server
 
     @property
     def is_provisioned(self):
@@ -321,7 +351,9 @@ class IPyDrawioExportManager(LoggingConfigurable):
             self.log.warning(
                 "installing drawio export dependencies %s", self.drawio_export_app
             )
-            subprocess.check_call([JLPM, "--silent"], cwd=str(self.drawio_export_app))
+            subprocess.check_call(
+                [str(JLPM), "--silent"], cwd=str(self.drawio_export_app)
+            )
         self.is_provisioning = False
 
     def get_unused_port(self):

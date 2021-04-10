@@ -1,24 +1,24 @@
 # ROADMAP
 
-- [ ] support mimerenderer
-- [ ] rework distribution for JupyterLab 3
-- [ ] support (ipy)widgets
-- [ ] rebrand as `ipydrawio`
+## 1.0.0
+
+> No current blockers, release is imminent
+
+- [x] support mimerenderer
+- [x] rework distribution for JupyterLab 3
+- [x] support (ipy)widgets
+- [x] rebrand as `ipydrawio`
 - [ ] pypi release
-- [ ] conda-forge release
-- [ ] docs on `gh-pages`
 
-## Jupyter Widget
+## 1.0.1
 
-### MVP
+> Will likely follow shortly after `1.0.0`
 
-```py
-import ipywidgets as W, traitlets as T
+- [ ] `conda-forge` release
+- [ ] docs on `gh-pages` or `readthedocs`
 
-class Drawio(W.Box):
-    value = T.Unicode().tag(sync=True)
-    scroll_x = T.Float().tag(sync=True)
-    scroll_y = T.Float().tag(sync=True)
-    zoom = T.Float().tag(sync=True)
-    selected = W.trait_types.TraitTuple(T.Unicode()).tag(sync=True)
-```
+## Future
+
+- [ ] `jupyter-videochat` integration
+- [ ] `jupyter-mockups` with various lo-fi Jupyter client interfaces
+- [ ] richer notebook integration with "live" updating

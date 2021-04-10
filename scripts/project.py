@@ -30,7 +30,7 @@ ATEST_PROCS = int(os.environ.get("ATEST_PROCS", "4"))
 # find root
 SCRIPTS = Path(__file__).parent.resolve()
 ROOT = SCRIPTS.parent
-BINDER = ROOT / "binder"
+BINDER = ROOT / ".binder"
 PY_MAJOR = "".join(map(str, sys.version_info[:2]))
 
 # top-level stuff
@@ -161,16 +161,14 @@ IPD = PY_SETUP["ipydrawio"].parent
 IPDE = PY_SETUP["ipydrawio-export"].parent
 
 PY_SDIST = {
-    IPDE.name: IPDE / "dist" / f"{IPDE.name}-1.0.0a1.tar.gz",
-    IPD.name: IPD / "dist" / f"{IPD.name}-1.0.0a1.tar.gz",
+    IPDE.name: IPDE / "dist" / f"{IPDE.name}-1.0.0.tar.gz",
+    IPD.name: IPD / "dist" / f"{IPD.name}-1.0.0.tar.gz",
 }
 PY_WHEEL = {
     IPDE.name: IPDE
     / "dist"
-    / f"""{IPDE.name.replace("-", "_")}-1.0.0a1-py3-none-any.whl""",
-    IPD.name: IPD
-    / "dist"
-    / f"""{IPD.name.replace("-", "_")}-1.0.0a1-py3-none-any.whl""",
+    / f"""{IPDE.name.replace("-", "_")}-1.0.0-py3-none-any.whl""",
+    IPD.name: IPD / "dist" / f"""{IPD.name.replace("-", "_")}-1.0.0-py3-none-any.whl""",
 }
 PY_TEST_DEP = {}
 
@@ -263,7 +261,7 @@ OK_ATEST = BUILD / "atest.ok"
 
 OK_EXT_BUILD = {k: BUILD / f"ext.build.{k}.ok" for k in JS_LABEXT_PY_HOST}
 
-PY_TEST_DEP["ipydrawio-export"] = [OK_PROVISION]
+PY_TEST_DEP.setdefault("ipydrawio-export", []).append(OK_PROVISION)
 
 HASH_DEPS = [*PY_SDIST.values(), *PY_WHEEL.values(), *JS_TARBALL.values()]
 SHA256SUMS = DIST / "SHA256SUMS"

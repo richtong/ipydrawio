@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.0.2",
-    "typescript": "~4.1.3"
+    "typescript": "~4.2.4"
   },
   "description": "A webpack-ready repackaging of drawio",
   "homepage": "https://github.com/deathbeds/ipydrawio",
@@ -43,5 +43,5 @@
     "build:pre": "python scripts/patch.py && python scripts/static.py"
   },
   "types": "lib/index.d.ts",
-  "version": "14.2.9-alpha1"
+  "version": "14.5.9"
 }

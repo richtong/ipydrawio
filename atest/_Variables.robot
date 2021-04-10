@@ -9,8 +9,8 @@ ${HEADLESS}       1
 ${CMD PALETTE INPUT}    css:#command-palette .lm-CommandPalette-input
 ${CMD PALETTE ITEM ACTIVE}    css:#command-palette .lm-CommandPalette-item.lm-mod-active
 ${JLAB XP TOP}    //div[@id='jp-top-panel']
-${JLAB XP MENU ITEM LABEL}    //div[@class='lm-Menu-itemLabel']
-${JLAB XP MENU LABEL}    //div[@class='lm-MenuBar-itemLabel']
+${JLAB XP MENU ITEM LABEL}    //div[contains(@class, 'lm-Menu-itemLabel')]
+${JLAB XP MENU LABEL}    //div[contains(@class, 'lm-MenuBar-itemLabel')]
 ${JLAB XP DOCK TAB}    xpath://div[contains(@class, 'lm-DockPanel-tabBar')]//li[contains(@class, 'lm-TabBar-tab')]
 ${JLAB CSS VERSION}    css:.jp-About-version
 ${CSS DIALOG OK}    css:.jp-Dialog .jp-mod-accept
@@ -24,6 +24,7 @@ ${DIALOG ACCEPT}    css:button.jp-Dialog-button.jp-mod-accept
 # ${STATUSBAR}    css:div.lsp-statusbar-item
 ${MENU EDITOR}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "Editor")]
 ${MENU SETTINGS}    xpath://div[contains(@class, 'lm-MenuBar-itemLabel')][contains(text(), "Settings")]
+${MENU RENAME}    xpath://div[contains(@class, 'lm-Menu-itemLabel')][contains(., "ename")]
 # settings
 ${DIO PLUGIN ID}    @deathbeds/ipydrawio:plugin
 ${DIO PLUGIN SETTINGS FILE}    @deathbeds${/}ipydrawio${/}plugin.jupyterlab-settings

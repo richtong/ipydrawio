@@ -10,13 +10,13 @@
 **[Open Source](#open-source)**
 
 [![install from pypi][pypi-badge]][pypi] [![reuse from npm][npm-badge]][npm]
-[![build][workflow-badge]][workflow]
+[![build][workflow-badge]][workflow] [![coverage][cov-badge]][cov]
 
 ---
 
-> > This is ALPHA software. Native drawio files created with these tools
-> > _should_ work with any other [drawio][] client, but any UI/API is liable to
-> > change at any time.
+> > This is BETA software. Native drawio files created with these tools _should_
+> > work with any other [drawio][] client, but any UI/API is liable to change at
+> > any time.
 
 [history]: https://github.com/deathbeds/ipydrawio/blob/master/CHANGELOG.md
 [binder]:
@@ -32,6 +32,9 @@
 [pypi-badge]: https://img.shields.io/pypi/v/ipydrawio
 [pypi]: https://pypi.org/project/ipydrawio/
 [npm-badge]: https://img.shields.io/npm/v/@deathbeds/ipydrawio
+[cov-badge]:
+  https://codecov.io/gh/deathbeds/ipydrawio/branch/master/graph/badge.svg?token=9B74VKHQDK
+[cov]: https://codecov.io/gh/deathbeds/ipydrawio
 
 ## Installation
 
@@ -87,6 +90,10 @@ pip install ipydrawio ipydrawio-export
     <img src="./packages/ipydrawio/style/img/drawio.svg" width="24"/> _Diagram_
     from the [Launcher][]
 - Use the _[Command Palette][]_ to _Export Diagram_ to various formats
+  - > **NOTE**: some of the built-in UI features of drawio don't work properly
+    > inside an IFrame in JupyterLab, and are difficult to robustly disable:
+    > please see _Diagram_ options available in the _Command Palette_ and
+    > various _Main Menu_ manus.
 
 [command palette]:
   https://jupyterlab.readthedocs.io/en/stable/user/commands.html?highlight=command%20palette
