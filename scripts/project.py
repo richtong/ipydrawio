@@ -30,8 +30,11 @@ ATEST_PROCS = int(os.environ.get("ATEST_PROCS", "4"))
 # find root
 SCRIPTS = Path(__file__).parent.resolve()
 ROOT = SCRIPTS.parent
-BINDER = ROOT / ".binder"
 PY_MAJOR = "".join(map(str, sys.version_info[:2]))
+
+# demo
+BINDER = ROOT / ".binder"
+OVERRIDES = BINDER / "overrides.json"
 
 # top-level stuff
 NODE_MODULES = ROOT / "node_modules"
@@ -39,13 +42,13 @@ PACKAGE = ROOT / "package.json"
 PACKAGES = ROOT / "packages"
 YARN_INTEGRITY = NODE_MODULES / ".yarn-integrity"
 YARN_LOCK = ROOT / "yarn.lock"
-OVERRIDES = ROOT / "overrides.json"
 CI = ROOT / ".github"
 DODO = ROOT / "dodo.py"
 BUILD = ROOT / "build"
 DIST = ROOT / "dist"
 README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
+SETUP_CFG = ROOT / "setup.cfg"
 
 # tools
 PY = ["python"]
@@ -78,6 +81,7 @@ ATEST_OUT_XML = "output.xml"
 # js packages
 JS_NS = "deathbeds"
 IPYDIO = PACKAGES / "ipydrawio"
+TSCONFIGBASE = PACKAGES / "tsconfigbase.json"
 
 # so many js packages
 JS_PKG_JSON = {p.parent.name: p for p in PACKAGES.glob("*/package.json")}
@@ -189,6 +193,7 @@ ALL_PY = [
     *SCRIPTS.glob("*.py"),
     *sum(JS_PY_SCRIPTS.values(), []),
     *sum(PY_SRC.values(), []),
+    *BINDER.glob("*.py"),
     DODO,
 ]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
@@ -197,17 +202,19 @@ ALL_JSON = [
     *PACKAGES.glob("*/*.json"),
     *PACKAGES.glob("*/schema/*.json"),
     *ATEST.glob("fixtures/*.json"),
+    *BINDER.glob("*.json"),
 ]
 ALL_MD = [
     *ROOT.glob("*.md"),
     *PACKAGES.glob("*/*.md"),
     *NOT_LABEXTENSIONS(PY_PACKAGES.glob("*/*.md")),
 ]
+ALL_JS = [PACKAGES / ".eslintrc.js"]
 ALL_TS = sum(JS_TSSRC.values(), [])
 ALL_CSS = sum(JS_STYLE.values(), [])
 ALL_ROBOT = [*ATEST.rglob("*.robot")]
-ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS]
-ESLINTRC = ROOT / ".eslintrc.js"
+ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS, *ALL_JS]
+ESLINTRC = PACKAGES / ".eslintrc.js"
 
 RFLINT_OPTS = sum(
     [

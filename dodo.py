@@ -198,7 +198,7 @@ if not P.TESTING_IN_CI:
         yield _ok(
             dict(
                 name="isort",
-                file_dep=[*P.ALL_PY],
+                file_dep=[*P.ALL_PY, P.SETUP_CFG],
                 actions=[["isort", *P.ALL_PY]],
             ),
             P.OK_ISORT,
@@ -214,7 +214,7 @@ if not P.TESTING_IN_CI:
         yield _ok(
             dict(
                 name="flake8",
-                file_dep=[*P.ALL_PY, P.OK_BLACK],
+                file_dep=[*P.ALL_PY, P.OK_BLACK, P.SETUP_CFG],
                 actions=[["flake8", *P.ALL_PY]],
             ),
             P.OK_FLAKE8,
@@ -240,7 +240,13 @@ if not P.TESTING_IN_CI:
         yield _ok(
             dict(
                 name="eslint",
-                file_dep=[P.YARN_INTEGRITY, *P.ALL_TS, P.OK_PRETTIER, P.ESLINTRC],
+                file_dep=[
+                    P.YARN_INTEGRITY,
+                    *P.ALL_TS,
+                    P.OK_PRETTIER,
+                    P.ESLINTRC,
+                    P.TSCONFIGBASE,
+                ],
                 actions=[["jlpm", "eslint"]],
             ),
             P.OK_ESLINT,
