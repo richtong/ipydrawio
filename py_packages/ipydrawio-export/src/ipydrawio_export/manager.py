@@ -1,21 +1,19 @@
-"""
-the drawio export manager
+"""drawio export manager"""
 
-Copyright 2021 ipydrawio contributors
-Copyright 2020 jupyterlab-drawio contributors
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 import asyncio
 import atexit
 import os
@@ -41,9 +39,15 @@ from tornado.concurrent import run_on_executor
 from traitlets import Bool, Dict, Instance, Int, Unicode, default
 from traitlets.config import LoggingConfigurable
 
-from .constants import DRAWIO_APP, PNG_DRAWIO_INFO
+from .constants import (
+    DRAWIO_APP,
+    ENV_IPYDRAWIO_DATA_DIR,
+    ENV_JUPYTER_DATA_DIR,
+    PNG_DRAWIO_INFO,
+    WORK_DIR,
+)
 
-VEND = Path(__file__).parent / "vendor" / "draw-image-export2"
+VEND = Path(__file__).parent / "vendor/draw-image-export2"
 
 DRAWIO_STATIC = (Path(get_app_dir()) / DRAWIO_APP).resolve()
 
@@ -64,6 +68,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
     drawio_export_workdir = Unicode().tag(config=True)
     pdf_cache = Unicode(allow_none=True).tag(config=True)
     attach_xml = Bool().tag(config=True)
+    attachment_name = Unicode("diagram.drawio").tag(config=True)
     is_provisioning = Bool(False)
     is_starting = Bool(False)
     init_wait_sec = Int(2).tag(config=True)
@@ -136,15 +141,15 @@ class IPyDrawioExportManager(LoggingConfigurable):
     def _default_drawio_export_workdir(self):
         data_root = Path(sys.prefix) / "share/jupyter"
 
-        if "JUPYTER_DATA_DIR" in os.environ:
-            data_root = Path(os.environ["JUPYTER_DATA_DIR"])
+        if ENV_JUPYTER_DATA_DIR in os.environ:
+            data_root = Path(os.environ[ENV_JUPYTER_DATA_DIR])
 
-        if "IPYDRAWIO_DATA_DIR" in os.environ:
-            data_root = Path(os.environ["IPYDRAWIO_DATA_DIR"])
+        if ENV_IPYDRAWIO_DATA_DIR in os.environ:
+            data_root = Path(os.environ[ENV_IPYDRAWIO_DATA_DIR])
 
-        workdir = str(data_root / "ipydrawio_export")
+        workdir = str(data_root if data_root.name == WORK_DIR else data_root / WORK_DIR)
 
-        self.log.debug(f"[ipydrawio] workdir: {workdir}")
+        self.log.debug(f"[ipydrawio-export] workdir: {workdir}")
         return workdir
 
     @default("attach_xml")
@@ -191,7 +196,30 @@ class IPyDrawioExportManager(LoggingConfigurable):
             retries -= 1
 
         if res:
-            self.log.debug(f"[ipydrawio-export] PDF-in-text {len(res.text)} bytes")
+            self.log.debug(f"[ipydrawio-export] {len(res.text)} bytes")
+
+        if pdf_text and self.attach_xml and self.attachments:
+            self.log.info(
+                f"[ipydrawio-export] attaching drawio XML as {self.attachment_name}"
+            )
+            with tempfile.TemporaryDirectory() as td:
+                tdp = Path(td)
+                output_pdf = tdp / "original.pdf"
+                output_pdf.write_bytes(b64decode(pdf_text))
+                final_pdf = tdp / "final.pdf"
+                final = PdfFileWriter()
+                final.appendPagesFromReader(PdfFileReader(str(output_pdf), "rb"))
+                xml = pdf_request["xml"]
+                if hasattr(xml, "encode"):
+                    xml = xml.encode("utf-8")
+                final.addAttachment(self.attachment_name, xml)
+                with final_pdf.open("wb") as fpt:
+                    final.write(fpt)
+
+                pdf_text = b64encode(final_pdf.read_bytes())
+                self.log.debug(
+                    f"[ipydrawio-export] {len(pdf_text)} bytes (with attachment)"
+                )
 
         return pdf_text
 
@@ -240,9 +268,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
                 for diagram in self.extract_diagrams(pdf_request):
                     tree.append(diagram)
                 next_pdf = tdp / f"doc-{i}.pdf"
-                wrote = next_pdf.write_bytes(
-                    b64decode(pdf_request["pdf"].encode("utf-8"))
-                )
+                wrote = next_pdf.write_bytes(b64decode(pdf_request["pdf"]))
                 if wrote:
                     merger.append(PdfFileReader(str(next_pdf)))
             output_pdf = tdp / "output.pdf"
@@ -252,7 +278,7 @@ class IPyDrawioExportManager(LoggingConfigurable):
             final = PdfFileWriter()
             final.appendPagesFromReader(PdfFileReader(str(output_pdf), "rb"))
             if self.attach_xml:
-                final.addAttachment("drawing.drawio", composite_xml.encode("utf-8"))
+                final.addAttachment(self.attachment_name, composite_xml.encode("utf-8"))
             with final_pdf.open("wb") as fpt:
                 final.write(fpt)
             return b64encode(final_pdf.read_bytes()).decode("utf-8")
@@ -313,23 +339,26 @@ class IPyDrawioExportManager(LoggingConfigurable):
         return self.drawio_export_node_modules / ".yarn-integrity"
 
     @run_on_executor
-    def provision(self, force=False):
+    def provision(self, force=False):  # pragma: no cover
         self.is_provisioning = True
         if not self.drawio_export_app.exists():
             if not self.drawio_export_app.parent.exists():
                 self.drawio_export_app.parent.mkdir(parents=True)
-            self.log.warning(
-                "initializing drawio export app %s", self.drawio_export_app
+            self.log.info(
+                "[ipydrawio-export] initializing drawio export app %s",
+                self.drawio_export_app,
             )
             shutil.copytree(VEND, self.drawio_export_app)
         else:
-            self.log.warning(
-                "using existing drawio export folder %s", self.drawio_export_app
+            self.log.info(
+                "[ipydrawio-export] using existing drawio export folder %s",
+                self.drawio_export_app,
             )
 
         if not self.drawio_export_node_modules.exists() or force:
-            self.log.warning(
-                "installing drawio export dependencies %s", self.drawio_export_app
+            self.log.info(
+                "[ipydrawio-export] installing drawio export dependencies %s",
+                self.drawio_export_app,
             )
             subprocess.check_call(
                 [str(JLPM), "--silent"], cwd=str(self.drawio_export_app)
@@ -347,3 +376,16 @@ class IPyDrawioExportManager(LoggingConfigurable):
         port = sock.getsockname()[1]
         sock.close()
         return port
+
+    def attachments(self, pdf_path):
+        """iterate over the name, attachment pairs in the PDF"""
+        reader = PdfFileReader(str(pdf_path), "rb")
+        attachments = []
+        try:
+            attachments = reader.trailer["/Root"]["/Names"]["/EmbeddedFiles"]["/Names"]
+        except KeyError:
+            pass
+        for i, name in enumerate(attachments, 1):
+            if not isinstance(name, str):
+                continue
+            yield name, attachments[i].getObject()["/EF"]["/F"].getData()

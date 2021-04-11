@@ -14,6 +14,21 @@ maybe before you push
 
     doit -n8 lint
 """
+
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import shutil
 import subprocess
 import time
@@ -53,6 +68,23 @@ def task_dist():
         uptodate=[lambda: False],
         file_dep=[P.OK_INTEGRITY, P.SHA256SUMS, P.OK_LINT],
         actions=[lambda: print(P.SHA256SUMS.read_text())],
+    )
+
+
+def task_env():
+    def _update_binder():
+        comment = "  ### ipydrawio-dev-deps ###"
+        old_binder = P.ENV_BINDER.read_text(encoding="utf-8").split(comment)
+        ci = P.ENV_CI.read_text(encoding="utf-8").split(comment)
+        P.ENV_BINDER.write_text(
+            "\n".join([old_binder[0], comment, ci[1], comment, old_binder[2]])
+        )
+
+    yield dict(
+        name="binder",
+        file_dep=[P.ENV_CI],
+        actions=[_update_binder],
+        targets=[P.ENV_BINDER],
     )
 
 
@@ -143,6 +175,7 @@ def task_setup():
                             [
                                 *P.LAB_EXT,
                                 "develop",
+                                "--debug",
                                 "--overwrite",
                                 ".",
                             ],
@@ -582,6 +615,7 @@ def task_test():
                     *P.PY_SRC[pkg],
                     P.PY_SETUP_CFG[pkg],
                     *P.PY_TEST_DEP.get(pkg, []),
+                    P.OK_PROVISION,
                     P.OK_PIP_CHECK,
                 ],
                 actions=[PythonInteractiveAction(_pytest(setup))],

@@ -1,3 +1,17 @@
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#                 http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 *** Settings ***
 Documentation     Are Diagram settings usable?
 Resource          _Keywords.robot
@@ -5,19 +19,19 @@ Library           OperatingSystem
 Force Tags        component:settings
 
 *** Test Cases ***
-Use Min Theme
+Min
     [Documentation]    Does the min theme work?
     Validate a Diagram Theme    min
 
-Use Atlas Theme
+Atlas
     [Documentation]    Does the atlas theme work?
     Validate a Diagram Theme    atlas
 
-Use Dark Theme
+Dark
     [Documentation]    Does the dark theme work?
     Validate a Diagram Theme    dark
 
-Use Kenedy Theme
+Kennedy
     [Documentation]    Does the kennedy theme work?
     Validate a Diagram Theme    kennedy
 
@@ -25,7 +39,7 @@ Use Kenedy Theme
 Validate a Diagram Theme
     [Arguments]    ${ui}
     [Documentation]    Change the theme
-    Set Tags    settings:urlParams:ui    settings:urlParams:ui:${ui}
+    Set Tags    settings:urlparams:ui    settings:urlparams:ui:${ui}
     Set Screenshot Directory    ${OUTPUT DIR}${/}settings${/}ui${/}${ui}
     Reset Plugin Settings
     Launch Untitled Diagram

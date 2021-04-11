@@ -1,44 +1,26 @@
-name: ipydrawio
+# a heavy demo environment for interactive testing
+
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: ipydrawio-demo
 
 channels:
   - conda-forge
   - nodefaults
 
 dependencies:
-  - ipywidgets >=7.6
-  - jupyterlab >=3.0.13,<4.0.0a0
-  - jupyterlab_widgets >=1
-  - lxml
-  - networkx
-  - nodejs >=12,<13.0.0a0
-  - pandas
-  - pillow
-  - pypdf2
-  - shapely
-  - tabulate
-  # linting and testing
-  - babel
-  - black
-  - doit
-  - flake8
-  - httpx
-  - isort <5
-  - json-e
-  - pyflakes
-  - pytest
-  - pytest-console-scripts
-  - pytest-cov
-  - pytest-tornasync
-  - requests_cache
-  - robotframework >=4
-  - robotframework-lint
-  - robotframework-jupyterlibrary
-  - robotframework-pabot
-  # python cruft
-  - python >=3.8,<3.9.0a0
-  - pip
-  - twine
-  - wheel
   # demo toys
   - bqplot
   - graphviz2drawio
@@ -46,13 +28,59 @@ dependencies:
   - jupyter-videochat
   - jupyterlab-classic
   - jupyterlab-lsp
+  - jupyterlab-tour
   - matplotlib-base
   - nbgitpuller
+  - networkx
   - pygraphviz
   - python-graphviz
+  - segno
+  - shapely
+  - tabulate
   - wxyz_datagrid
+  - wxyz_json_schema_form
   - wxyz_lab
-  # for ipython
+  - wxyz_svg
+  # TODO: get on conda-forge
+  # - qrcode-artistic
+
+  ### ipydrawio-dev-deps ###
+
+  # core
+  - doit
+  - nodejs >=12,!=13.*,<15
+  - python # this gets patched in ci
+  # run
+  - ipywidgets >=7.6
   - jedi <0.18.0
-  # binder pins
-  - jupyter_telemetry >=0.1.0 # ick, but fails pip check
+  - jupyterlab >=3.0.13,<4.0.0a0
+  - jupyterlab_widgets >=1
+  - lxml
+  - pillow
+  - pypdf2
+  - requests_cache
+  # building
+  - pip
+  - twine
+  - wheel
+  # linting
+  - black
+  - flake8
+  - isort >=5
+  - pyflakes
+  - robotframework-lint
+  # unit testing
+  - pytest
+  - pytest-console-scripts
+  - pytest-cov
+  - pytest-tornasync
+  # acceptance testing
+  - firefox =78
+  - geckodriver >=0.28.0
+  - robotframework >=4
+  - robotframework-pabot
+  - robotframework-seleniumlibrary
+  # reporting
+  - codecov
+
+  ### ipydrawio-dev-deps ###

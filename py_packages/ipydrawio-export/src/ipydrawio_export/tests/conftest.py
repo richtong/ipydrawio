@@ -1,9 +1,25 @@
+"""ipydrawio-export test environment"""
+
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import shutil
 from pathlib import Path
 
 import pytest
 
-from ..app import PDFApp, ProvisionApp
+from ..app import PDFApp
 
 FIXTURES = Path(__file__).parent / "fixtures"
 FIXTURE_FILES = sorted([f for f in FIXTURES.glob("*") if not f.is_dir()])
@@ -21,14 +37,6 @@ def any_diagram(request, tmp_path):
 @pytest.fixture
 def export_app(tmp_path):
     app = PDFApp()
-    yield app
-    app.drawio_manager.stop_server()
-
-
-@pytest.fixture
-def provision_app(tmp_path):
-    app = ProvisionApp()
-    app.drawio_manager.drawio_export_workdir = str(tmp_path)
     yield app
     app.drawio_manager.stop_server()
 

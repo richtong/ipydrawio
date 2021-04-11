@@ -1,26 +1,25 @@
-"""
-CLI for ipydrawio-export
+"""CLI for ipydrawio-export"""
 
-Copyright 2021 ipydrawio contributors
-Copyright 2020 jupyterlab-drawio contributors
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 import base64
 import json
 from pathlib import Path
 
 import traitlets as T
+from jupyter_core.application import base_flags
 from tornado import ioloop
 from traitlets.config import Application
 
@@ -64,11 +63,26 @@ class ManagedApp(BaseApp):
 class ProvisionApp(ManagedApp):
     """pre-provision drawio export tools"""
 
+    show_workdir = T.Bool(False).tag(config=True)
+
+    flags = dict(
+        **base_flags,
+        workdir=(
+            {"ProvisionApp": {"show_workdir": True}},
+            "Print the export working directory",
+        ),
+    )
+
     async def start_async(self):
-        try:
-            await self.drawio_manager.provision(force=True)
-        finally:
+        if self.show_workdir:
+            print(str(Path(self.drawio_manager.drawio_export_workdir).resolve()))
             self.stop()
+            return
+        else:  # pragma: no cover
+            try:
+                await self.drawio_manager.provision(force=True)
+            finally:
+                self.stop()
 
 
 class PDFApp(ManagedApp):

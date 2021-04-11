@@ -2,10 +2,24 @@
 
     this should not import anything not in py36+ stdlib, or any local paths
 """
+
+# Copyright 2021 ipydrawio contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import os
 import platform
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -35,6 +49,8 @@ PY_MAJOR = "".join(map(str, sys.version_info[:2]))
 # demo
 BINDER = ROOT / ".binder"
 OVERRIDES = BINDER / "overrides.json"
+POSTBUILD_PY = BINDER / "postBuild"
+ENV_BINDER = BINDER / "environment.yml"
 
 # top-level stuff
 NODE_MODULES = ROOT / "node_modules"
@@ -42,13 +58,16 @@ PACKAGE = ROOT / "package.json"
 PACKAGES = ROOT / "packages"
 YARN_INTEGRITY = NODE_MODULES / ".yarn-integrity"
 YARN_LOCK = ROOT / "yarn.lock"
-CI = ROOT / ".github"
 DODO = ROOT / "dodo.py"
 BUILD = ROOT / "build"
 DIST = ROOT / "dist"
 README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
 SETUP_CFG = ROOT / "setup.cfg"
+
+# ci
+CI = ROOT / ".github"
+ENV_CI = CI / "environment.yml"
 
 # tools
 PY = ["python"]
@@ -153,26 +172,29 @@ PY_PACKAGES = ROOT / "py_packages"
 PY_SETUP = {p.parent.name: p for p in (ROOT / "py_packages").glob("*/setup.py")}
 PY_SRC = {k: sorted((v.parent / "src").rglob("*.py")) for k, v in PY_SETUP.items()}
 PY_SETUP_CFG = {k: v.parent / "setup.cfg" for k, v in PY_SETUP.items()}
+
 PY_VERSION = {
-    k: re.findall(
-        r"""__version__ = "([^"]+)""",
-        [vv for vv in v if vv.name == "_version.py"][0].read_text(),
-    )[0]
-    for k, v in PY_SRC.items()
+    "ipydrawio": JS_PKG_DATA["ipydrawio"]["version"],
+    "ipydrawio-export": JS_PKG_DATA["ipydrawio-pdf"]["version"],
 }
 
 IPD = PY_SETUP["ipydrawio"].parent
 IPDE = PY_SETUP["ipydrawio-export"].parent
 
+IPD_VERSION = PY_VERSION["ipydrawio"]
+IPDE_VERSION = PY_VERSION["ipydrawio-export"]
+
 PY_SDIST = {
-    IPDE.name: IPDE / "dist" / f"{IPDE.name}-1.0.0.tar.gz",
-    IPD.name: IPD / "dist" / f"{IPD.name}-1.0.0.tar.gz",
+    IPDE.name: IPDE / "dist" / f"{IPDE.name}-{IPDE_VERSION}.tar.gz",
+    IPD.name: IPD / "dist" / f"{IPD.name}-{IPD_VERSION}.tar.gz",
 }
 PY_WHEEL = {
     IPDE.name: IPDE
     / "dist"
-    / f"""{IPDE.name.replace("-", "_")}-1.0.0-py3-none-any.whl""",
-    IPD.name: IPD / "dist" / f"""{IPD.name.replace("-", "_")}-1.0.0-py3-none-any.whl""",
+    / f"""{IPDE.name.replace("-", "_")}-{IPDE_VERSION}-py3-none-any.whl""",
+    IPD.name: IPD
+    / "dist"
+    / f"""{IPD.name.replace("-", "_")}-{IPD_VERSION}-py3-none-any.whl""",
 }
 PY_TEST_DEP = {}
 
@@ -194,6 +216,7 @@ ALL_PY = [
     *sum(JS_PY_SCRIPTS.values(), []),
     *sum(PY_SRC.values(), []),
     *BINDER.glob("*.py"),
+    POSTBUILD_PY,
     DODO,
 ]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
@@ -209,11 +232,22 @@ ALL_MD = [
     *PACKAGES.glob("*/*.md"),
     *NOT_LABEXTENSIONS(PY_PACKAGES.glob("*/*.md")),
 ]
+ALL_SETUP_CFG = [SETUP_CFG, *PY_SETUP_CFG.values()]
 ALL_JS = [PACKAGES / ".eslintrc.js"]
 ALL_TS = sum(JS_TSSRC.values(), [])
 ALL_CSS = sum(JS_STYLE.values(), [])
 ALL_ROBOT = [*ATEST.rglob("*.robot")]
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS, *ALL_JS]
+ALL_HEADERS = [
+    *ALL_SETUP_CFG,
+    *ALL_PY,
+    *ALL_TS,
+    *ALL_CSS,
+    *ALL_JS,
+    *ALL_MD,
+    *ALL_YML,
+    *ALL_ROBOT,
+]
 ESLINTRC = PACKAGES / ".eslintrc.js"
 
 RFLINT_OPTS = sum(
@@ -243,6 +277,8 @@ JS_PKG_PACK[IPDW.name][0] += [
     *ALL_IPDW_JS,
 ]
 
+# provisioning stuff
+IPYDRAWIO_DATA_DIR = Path(sys.prefix) / "share/jupyter/ipydrawio_export"
 
 # built files
 OK_PIP_CHECK = BUILD / "pip.check.ok"
@@ -292,3 +328,6 @@ def get_atest_stem(attempt=1, extra_args=None, browser=None):
         stem += "_dry_run"
 
     return stem
+
+
+os.environ.update(IPYDRAWIO_DATA_DIR=str(IPYDRAWIO_DATA_DIR))
