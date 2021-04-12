@@ -122,11 +122,10 @@ def task_setup():
     for pkg, pkg_setup in P.PY_SETUP.items():
         # TODO: refactor
         ext_deps = [
-            pkg_setup.parent
-            / "src"
-            / pkg.replace("-", "_")
-            / "labextensions"
-            / P.JS_PKG_DATA[ext]["name"]
+            (
+                P.JS_PKG_JSON[ext].parent
+                / P.JS_PKG_DATA[ext]["jupyterlab"]["outputDir"]
+            ).resolve()
             / "package.json"
             for ext, mod in P.JS_LABEXT_PY_HOST.items()
             if mod == pkg_setup.parent.name
@@ -377,9 +376,9 @@ if not P.TESTING_IN_CI:
             if "jupyterlab" not in pkg_data:
                 continue
 
-            host = P.JS_LABEXT_PY_HOST[pkg]
-            host_mod = host.replace("-", "_")
-            host_ext = P.PY_PACKAGES / host / "src" / host_mod / "labextensions"
+            out_dir = (
+                P.JS_PKG_JSON[pkg].parent / pkg_data["jupyterlab"]["outputDir"]
+            ).resolve()
 
             yield _ok(
                 dict(
@@ -392,19 +391,17 @@ if not P.TESTING_IN_CI:
                         )
                     ],
                     file_dep=targets,
-                    targets=[host_ext / f"""{pkg_data["name"]}/package.json"""],
+                    targets=[out_dir / "package.json"],
                 ),
                 P.OK_EXT_BUILD[pkg],
             )
 
         for py_pkg, py_setup in P.PY_SETUP.items():
-            py_mod = py_setup.parent.name.replace("-", "_")
             ext_deps = [
-                py_setup.parent
-                / "src"
-                / py_mod
-                / "labextensions"
-                / P.JS_PKG_DATA[ext]["name"]
+                (
+                    P.JS_PKG_JSON[ext].parent
+                    / P.JS_PKG_DATA[ext]["jupyterlab"]["outputDir"]
+                ).resolve()
                 / "package.json"
                 for ext, mod in P.JS_LABEXT_PY_HOST.items()
                 if mod == py_setup.parent.name
@@ -473,6 +470,42 @@ if not P.TESTING_IN_CI:
             targets=[P.SHA256SUMS, *[P.DIST / d.name for d in P.HASH_DEPS]],
             actions=[_make_hashfile],
         )
+
+
+def task_conda():
+    args = [
+        "conda",
+        P.CONDA_BUILDERER,
+        "-c",
+        "conda-forge",
+    ]
+
+    yield dict(
+        name="build",
+        file_dep=[
+            P.RECIPE,
+            *[P.DIST / p.name for p in P.PY_SDIST.values()],
+        ],
+        actions=[
+            [
+                *args,
+                "--no-test",
+                "--output-folder",
+                P.CONDA_BLD,
+                P.RECIPE.parent,
+            ]
+        ],
+        targets=[*P.CONDA_PKGS.values()],
+    )
+
+    yield _ok(
+        dict(
+            name="test",
+            file_dep=[*P.CONDA_PKGS.values()],
+            actions=[[*args, "--test", *P.CONDA_PKGS.values()]],
+        ),
+        P.OK_CONDA_TEST,
+    )
 
 
 if not P.TESTING_IN_CI:

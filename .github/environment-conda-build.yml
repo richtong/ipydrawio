@@ -1,7 +1,6 @@
-"""source of truth for ipydrawio version"""
+# a sufficient environment for acceptance testing
 
 # Copyright 2021 ipydrawio contributors
-# Copyright 2020 jupyterlab-drawio contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-from pathlib import Path
+name: ipydrawio-conda-build
 
-HERE = Path(__file__).parent
+channels:
+  - conda-forge
+  - nodefaults
 
-__js__ = json.loads((HERE / "ext/ipd/package.json").read_text(encoding="utf-8"))
-
-__version__ = __js__["version"]
-
-__all__ = ["__version__", "__js__"]
+dependencies:
+  - boa
+  - conda-build
+  - doit

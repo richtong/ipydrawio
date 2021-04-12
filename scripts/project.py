@@ -160,7 +160,7 @@ JS_PY_SCRIPTS = {
 
 # special things for ipydrawio-webpack
 IPDW = JS_PKG_JSON["ipydrawio-webpack"].parent
-IPDW_APP = IPDW / "drawio/src/main/webapp/js/app.min.js"
+IPDW_APP = IPDW / "dio/js/app.min.js"
 IPDW_PY = (IPDW / "scripts").rglob("*.py")
 DRAWIO = IPDW / "drawio"
 IPDW_LIB = IPDW / "lib"
@@ -205,19 +205,16 @@ SERVER_EXT = {
 }
 
 
-def NOT_LABEXTENSIONS(paths):
-    return [p for p in paths if "labextensions" not in str(p)]
-
-
 ALL_PY = [
     *ATEST.rglob("*.py"),
+    *BINDER.glob("*.py"),
     *IPDW_PY,
+    *PY_SETUP.values(),
     *SCRIPTS.glob("*.py"),
     *sum(JS_PY_SCRIPTS.values(), []),
     *sum(PY_SRC.values(), []),
-    *BINDER.glob("*.py"),
-    POSTBUILD_PY,
     DODO,
+    POSTBUILD_PY,
 ]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
 ALL_JSON = [
@@ -230,7 +227,6 @@ ALL_JSON = [
 ALL_MD = [
     *ROOT.glob("*.md"),
     *PACKAGES.glob("*/*.md"),
-    *NOT_LABEXTENSIONS(PY_PACKAGES.glob("*/*.md")),
 ]
 ALL_SETUP_CFG = [SETUP_CFG, *PY_SETUP_CFG.values()]
 ALL_JS = [PACKAGES / ".eslintrc.js"]
@@ -301,6 +297,7 @@ OK_PROVISION = BUILD / "provision.ok"
 OK_ROBOT_DRYRUN = BUILD / "robot.dryrun.ok"
 OK_RFLINT = BUILD / "robot.rflint.ok"
 OK_ATEST = BUILD / "atest.ok"
+OK_CONDA_TEST = BUILD / "conda-build.test.ok"
 
 OK_EXT_BUILD = {k: BUILD / f"ext.build.{k}.ok" for k in JS_LABEXT_PY_HOST}
 
@@ -316,6 +313,16 @@ CMD_LIST_EXTENSIONS = ["jupyter", "labextension", "list"]
 
 CMD_LAB = ["jupyter", "lab", "--no-browser", "--debug"]
 
+# conda building
+RECIPE = ROOT / "conda.recipe/meta.yaml"
+CONDA_BLD = BUILD / "conda-bld"
+# could be mambabuild
+CONDA_BUILDERER = os.environ.get("CONDA_BUILDERER", "build")
+CONDA_PKGS = {
+    pkg: CONDA_BLD / f"noarch/{pkg}-{ver}-py_0.tar.bz2"
+    for pkg, ver in PY_VERSION.items()
+}
+
 
 def get_atest_stem(attempt=1, extra_args=None, browser=None):
     """get the directory in ATEST_OUT for this platform/apps"""
@@ -330,4 +337,6 @@ def get_atest_stem(attempt=1, extra_args=None, browser=None):
     return stem
 
 
-os.environ.update(IPYDRAWIO_DATA_DIR=str(IPYDRAWIO_DATA_DIR))
+os.environ.update(
+    IPYDRAWIO_DATA_DIR=str(IPYDRAWIO_DATA_DIR), PIP_DISABLE_PIP_VERSION_CHECK="1"
+)

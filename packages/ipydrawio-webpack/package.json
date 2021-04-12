@@ -21,7 +21,7 @@
   "name": "@deathbeds/ipydrawio-webpack",
   "jupyterlab": {
     "extension": "lib/plugin.js",
-    "outputDir": "../../py_packages/ipydrawio/src/ipydrawio/labextensions/@deathbeds/ipydrawio-webpack",
+    "outputDir": "../../py_packages/ipydrawio/src/ipydrawio/ext/ipdwp",
     "webpackConfig": "./webpack.config.js",
     "discovery": {
       "server": {
@@ -43,5 +43,5 @@
     "build:pre": "python scripts/patch.py && python scripts/static.py"
   },
   "types": "lib/index.d.ts",
-  "version": "14.5.9"
+  "version": "14.5.901"
 }
