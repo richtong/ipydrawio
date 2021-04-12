@@ -1,6 +1,7 @@
 # IPyDrawio Export
 
 [![binder-badge][]][binder] [![install from pypi][pypi-badge]][pypi]
+[![install from conda-forge][conda-badge]][conda]
 [![build][workflow-badge]][workflow] [![coverage][cov-badge]][cov]
 
 > PDF export of [drawio](https://www.diagrams.net) diagrams for JupyterLab.
@@ -10,7 +11,11 @@ information.
 
 ## Installation
 
+> _Note: the `mamba`/`conda` installation method ensures `nodejs` is available_
+
 ```bash
+mamba install -c conda-forge ipydrawio-export  # recommended, or...
+conda install -c conda-forge ipydrawio-export  # or...
 pip install ipydrawio-export
 ```
 
@@ -37,7 +42,6 @@ jupyter server extension list   # ... then check it again
 PDF can also be generated from the command line:
 
 ```bash
-pip install ipydrawio-export
 jupyter drawio-export pdf some_file.dio
 ```
 
@@ -62,19 +66,25 @@ jupyter ipydrawio-export provision
 ### Provision locations
 
 If defined, these environment variables will be respected, and an
-`ipydrawio_export` folder will be created:
+`ipydrawio_export` folder will be created within:
 
 - `$JUPYTER_DATA_DIR`
 - `$IPYDRAWIO_DATA_DIR`
 
 Otherwise, `ipydrawio-export` will provision its files into
-`{sys.prefix}/ipydrawio_export`.
+`{sys.prefix}/share/jupyter/ipydrawio_export`.
 
 Of note:
 
 - access to the internet is required
 - this location must be writeable by the user
 - there must be about 400MiB available, primarily for `puppeteer`'s `chromium`
+
+The effective location can be verified with:
+
+```bash
+jupyter ipydrawio-export provision --workdir
+```
 
 ## Open Source
 
@@ -111,6 +121,8 @@ limitations under the License.
 [binder-badge]: https://mybinder.org/badge_logo.svg
 [pypi-badge]: https://img.shields.io/pypi/v/ipydrawio-export
 [pypi]: https://pypi.org/project/ipydrawio-export
+[conda-badge]: https://img.shields.io/conda/vn/conda-forge/ipydrawio-export
+[conda]: https://anaconda.org/conda-forge/ipydrawio-export
 [workflow-badge]:
   https://github.com/deathbeds/ipydrawio/workflows/.github/workflows/ci.yml/badge.svg
 [workflow]:
