@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## Releases
 
 ### ipydrawio 1.1.0
 
@@ -37,8 +37,6 @@
 
 ---
 
-## Releases
-
 ### ipydrawio 1.0.1
 
 - [#32] on-disk file paths are shorter to avoid Windows issues
@@ -63,6 +61,8 @@
 
 [#31]: https://github.com/deathbeds/ipydrawio/issues/31
 [#32]: https://github.com/deathbeds/ipydrawio/issues/32
+
+---
 
 ### ipydrawio 1.0.0
 
@@ -101,6 +101,8 @@
 [#20]: https://github.com/deathbeds/ipydrawio/issues/20
 [#21]: https://github.com/deathbeds/ipydrawio/issues/21
 [#22]: https://github.com/deathbeds/ipydrawio/pull/22
+
+---
 
 ### ipydrawio 1.0.0a0
 
