@@ -14,21 +14,23 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-
+import { Widget } from '@lumino/widgets';
 import {
   IWidgetTracker,
   WidgetTracker,
   ICommandPalette,
+  MainAreaWidget,
 } from '@jupyterlab/apputils';
 import { JupyterLab, ILayoutRestorer } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { PathExt } from '@jupyterlab/coreutils';
+import { URLExt, PathExt } from '@jupyterlab/coreutils';
 import {
   IDiagramManager,
-  TEXT_FACTORY,
   CommandIds,
   DEBUG,
   IFormat,
+  ICreateNewArgs,
+  ITemplate,
 } from './tokens';
 import { Diagram } from './editor';
 import { DiagramFactory, DiagramDocument } from './document';
@@ -37,6 +39,7 @@ import { DrawioStatus } from './status';
 import * as IO from './io';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { DRAWIO_URL } from '@deathbeds/ipydrawio-webpack';
+import { CreateAdvanced } from './createAdvanced';
 
 const DEFAULT_EXPORTER = async (
   drawio: Diagram,
@@ -67,16 +70,51 @@ export class DiagramManager implements IDiagramManager {
   }
 
   protected _initCommands() {
+    const { commands } = this._app;
     // Add a command for creating a new diagram file.
-    this._app.commands.addCommand(CommandIds.createNew, {
-      label: IO.XML_NATIVE.label,
-      icon: IO.drawioIcon,
-      caption: `Create a new ${IO.XML_NATIVE.name} file`,
-      execute: () => {
+    commands.addCommand(CommandIds.createNew, {
+      label: (args) => {
+        const { drawioUrlParams } = (args as any) as ICreateNewArgs;
+        const { ui } = drawioUrlParams || {};
+        return !ui
+          ? IO.XML_NATIVE.label
+          : `${IO.XML_NATIVE.label} [${drawioUrlParams?.ui}]`;
+      },
+      icon: (args) => {
+        const { drawioUrlParams } = (args as any) as ICreateNewArgs;
+        const { ui } = drawioUrlParams || {};
+        return ui ? IO.drawioThemeIcons[ui] : IO.drawioIcon;
+      },
+      caption: `Create a blank ${IO.XML_NATIVE.ext} file`,
+      execute: async (args) => {
         let cwd = this._browserFactory.defaultBrowser.model.path;
-        return this.createNew(cwd);
+        return this.createNew({ ...(args as any), cwd });
       },
     });
+
+    commands.addCommand(CommandIds.createNewCustom, {
+      label: `Advanced ${IO.XML_NATIVE.label}...`,
+      caption: 'Create a diagram with customized formats, templates, and UI',
+      execute: () => {
+        const model = new CreateAdvanced.Model({ manager: this });
+        const settingsChanged = () => model.stateChanged.emit(void 0);
+        this._settings.changed.connect(settingsChanged);
+        const content = new CreateAdvanced(model);
+        const main = new MainAreaWidget({ content });
+        model.documentRequested.connect(async () => {
+          await commands.execute(CommandIds.createNew, model.args as any);
+          main.dispose();
+          model.dispose();
+          this._settings.changed.disconnect(settingsChanged);
+        });
+        this._app.shell.add(main);
+      },
+      icon: IO.drawioIcon,
+    });
+  }
+
+  get formats() {
+    return [...this._formats.values()];
   }
 
   formatForModel(contentsModel: Partial<Contents.IModel>) {
@@ -133,25 +171,53 @@ export class DiagramManager implements IDiagramManager {
     return null;
   }
 
-  // Function to create a new untitled diagram file, given
-  // the current working directory.
-  createNew(cwd: string) {
+  // Create a new untitled diagram file, given the current working directory.
+  async createNew(args: ICreateNewArgs) {
+    let { cwd } = args;
+
+    const format =
+      (args.format ? this._formats.get(args.format) : null) || IO.XML_NATIVE;
+
     this._status.status = `Creating Diagram in ${cwd}...`;
 
-    const result = this._app.commands
-      .execute('docmanager:new-untitled', {
+    let model: Contents.IModel = await this._app.commands.execute(
+      'docmanager:new-untitled',
+      {
         path: cwd,
-        type: 'file',
-        ext: IO.XML_NATIVE.ext,
-      })
-      .then((model: Contents.IModel) => {
-        this._status.status = `Opening Diagram...`;
-        return this._app.commands.execute('docmanager:open', {
-          path: model.path,
-          factory: TEXT_FACTORY,
-        });
-      });
-    return result;
+        type: format.contentType || 'file',
+        ext: format.ext,
+      }
+    );
+
+    if (args.name && args.name.trim()) {
+      model = await this._app.serviceManager.contents.rename(
+        model.path,
+        PathExt.join(
+          PathExt.dirname(model.path),
+          `${args.name.trim()}${format.ext}`
+        )
+      );
+    }
+
+    this._status.status = `Opening Diagram ${model.path}...`;
+
+    const diagram: DiagramDocument = await this._app.commands.execute(
+      'docmanager:open',
+      { path: model.path, factory: format.factoryName }
+    );
+
+    if (args.drawioUrlParams) {
+      diagram.urlParams = args.drawioUrlParams;
+      const template = args.drawioUrlParams['template-filename'];
+      if (template) {
+        await diagram.content.ready;
+        const response = await fetch(template);
+        const xml = await response.text();
+        diagram.content.load(xml);
+      }
+    }
+
+    return diagram;
   }
 
   protected _onSettingsChanged() {
@@ -159,6 +225,38 @@ export class DiagramManager implements IDiagramManager {
     for (const tracker of this._trackers.values()) {
       tracker.forEach(this.updateWidgetSettings);
     }
+  }
+
+  /**
+   * Retrieve all available templates
+   */
+  async templates(): Promise<ITemplate[]> {
+    const templates: ITemplate[] = [];
+    const response = await fetch(
+      URLExt.join(DRAWIO_URL, '../templates/index.xml')
+    );
+    const xmlStr = await response.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlStr, 'application/xml');
+    for (const tmpl of xml.querySelectorAll('template')) {
+      let url = tmpl.getAttribute('url');
+      if (!url) {
+        continue;
+      }
+      const [group, label] = url
+        .replace(/.xml$/, '')
+        .replace(/_/g, ' ')
+        .split('/')
+        .slice(-2);
+      url = URLExt.join(DRAWIO_URL, '../templates/', url);
+      templates.push({
+        url,
+        label,
+        thumbnail: url.replace(/.xml$/, '.png'),
+        tags: [group],
+      });
+    }
+    return templates;
   }
 
   addFormat(format: IFormat) {
@@ -195,6 +293,18 @@ export class DiagramManager implements IDiagramManager {
 
   protected updateWidgetSettings(widget: DiagramDocument) {
     widget.updateSettings();
+  }
+
+  escapeCurrent(widget: Widget) {
+    if (this._settings.composite['disableEscapeFocus']) {
+      return;
+    }
+    this._app.shell.activateById(widget.id);
+    const { status } = this.status;
+
+    this.status.status = 'Escaped';
+    setTimeout(() => (this.status.status = status), 1000);
+    window.focus();
   }
 
   protected _initExportCommands(exportFormat: IFormat) {
@@ -337,7 +447,7 @@ export class DiagramManager implements IDiagramManager {
       name,
       fileTypes: fileTypes.map(({ name }) => name),
       defaultFor: defaultFor.map(({ name }) => name),
-      getSettings: () => this._settings.composite,
+      getSettings: () => this._settings.composite || {},
       manager: this,
     });
     const tracker = new WidgetTracker<DiagramDocument>({ namespace });

@@ -19,8 +19,9 @@ import json
 from pathlib import Path
 
 HERE = Path(__file__).parent
+PKG_JSON = HERE / "ext/ipd/package.json"
 
-__js__ = json.loads((HERE / "ext/ipd/package.json").read_text(encoding="utf-8"))
+__js__ = json.loads(PKG_JSON.read_text(encoding="utf-8"))
 
 __version__ = __js__["version"]
 

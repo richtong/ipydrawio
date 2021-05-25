@@ -46,6 +46,7 @@ import {
   PLUGIN_ID,
   DIAGRAM_MENU_RANK,
   UI_THEMES,
+  ISetUrlParamsArgs,
 } from './tokens';
 import { DiagramManager } from './manager';
 import { RenderedDiagram } from './mime';
@@ -118,13 +119,30 @@ function activate(
     launcher.add({
       command: CommandIds.createNew,
       rank: 1,
-      category: 'Other',
+      category: IO.XML_NATIVE.label,
     });
+
+    launcher.add({
+      command: CommandIds.createNewCustom,
+      rank: 2,
+      category: IO.XML_NATIVE.label,
+    });
+
+    // for (const ui of UI_THEMES) {
+    //   launcher.add({
+    //     command: CommandIds.createNew,
+    //     args: {
+    //       drawioUrlParams: { ui },
+    //     },
+    //     rank: 2,
+    //     category: IO.XML_NATIVE.label,
+    //   });
+    // }
   }
 
   commands.addCommand(CommandIds.setUrlParams, {
     label: (args) => {
-      const { drawioUrlParams } = args;
+      const { drawioUrlParams } = (args as any) as ISetUrlParamsArgs;
       const entries = Object.entries(drawioUrlParams || {});
       if (entries.length == 1 && args.justValue) {
         return entries.map(([k, v]) => v).join(', ');
@@ -135,7 +153,8 @@ function activate(
     },
     isToggleable: true,
     isToggled: (args) => {
-      const drawioUrlParams = manager.settings.composite.drawioUrlParams || {};
+      const drawioUrlParams =
+        manager.settings?.composite?.drawioUrlParams || {};
       for (const [k, v] of Object.entries(args.drawioUrlParams || {})) {
         if (
           drawioUrlParams.hasOwnProperty(k) &&
@@ -147,7 +166,8 @@ function activate(
       return true;
     },
     execute: async (args) => {
-      const drawioUrlParams = manager.settings.composite.drawioUrlParams || {};
+      const drawioUrlParams =
+        manager.settings?.composite?.drawioUrlParams || {};
       await manager.settings.set('drawioUrlParams', {
         ...(drawioUrlParams as any),
         ...(args.drawioUrlParams as any),

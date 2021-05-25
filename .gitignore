@@ -3,6 +3,7 @@ __pycache__
 .doit*
 .ipynb_checkpoints
 .pabotsuitenames
+.virtual_documents/
 *.bundle.*
 *.egg-info/
 *.isorted
@@ -15,12 +16,13 @@ __pycache__
 atest/output/
 build/
 dist/
+docs/api/ts
 envs/
 htmlcov/
 node_modules/
+packages/ipydrawio-webpack/dio/
+py_packages/**/src/*/ext/
 py_packages/ipydrawio-export/ipydrawio-export-*
 py_packages/ipydrawio/ipydrawio-*
-py_packages/**/src/*/ext/
-packages/ipydrawio-webpack/dio/
 untitled*
 Untitled*

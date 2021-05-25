@@ -207,6 +207,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/images/update16.p
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/images/update32.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/images/update80.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/images/youtube.png';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/LICENSE';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/clipart/Battery_0_128x128.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/clipart/Battery_100_128x128.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/clipart/Battery_50_128x128.png';
@@ -420,7 +421,12 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/atlassian
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/atlassian/Trello_Logo.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Bot_Services.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Cognitive_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Machine_Learning_Studio_Classic_Web_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Machine_Learning_Studio_Web_Service_Plans.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Machine_Learning_Studio_Workspaces.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ai_machine_learning/Translator_Text.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/analytics/Analysis_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/analytics/Azure_Databricks.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/analytics/Azure_Synapse_Analytics.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/analytics/Data_Lake_Store_Gen1.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/analytics/Event_Hub_Clusters.svg';
@@ -452,7 +458,9 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/bl
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/blockchain/Consortium.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/blockchain/Outbound_Connection.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/App_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Automanaged_VM.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Availability_Sets.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Azure_Spring_Cloud.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Batch_Accounts.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Cloud_Services_Classic.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/compute/Container_Instances.svg';
@@ -489,6 +497,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/da
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_Database_Migration_Services.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_Database_MySQL_Server.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_Database_PostgreSQL_Server.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_SQL.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_SQL_Server_Stretch_Databases.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_SQL_VM.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Azure_Synapse_Analytics.svg';
@@ -502,6 +511,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/da
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/SQL_Elastic_Pools.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/SQL_Managed_Instance.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/SQL_Server.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/SSIS_Lift_And_Shift_IR.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/databases/Virtual_Clusters.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/devops/Application_Insights.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/devops/Azure_DevOps.svg';
@@ -525,6 +535,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ge
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Cost_Analysis.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Cost_Budgets.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Cost_Management.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Cost_Management_and_Billing.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Counter.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Cubes.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Dashboard.svg';
@@ -537,6 +548,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ge
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Files.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Folder_Blank.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Folder_Website.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Free_Services.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Gear.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Globe.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Globe_Error.svg';
@@ -571,6 +583,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ge
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Quickstart_Center.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Recent.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Reservations.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Resource_Explorer.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Resource_Group_List.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Resource_Groups.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Resource_Linked.svg';
@@ -588,6 +601,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ge
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Subscriptions.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/TFS_VC_Repository.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Table.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Tag.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Tags.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Toolbox.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/general/Versions.svg';
@@ -601,26 +615,34 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/id
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/App_Registrations.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Azure_AD_B2C.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Azure_AD_Domain_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Azure_AD_Identity_Protection.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Azure_Active_Directory.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Enterprise_Applications.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Groups.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Identity_Governance.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Managed_Identities.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/identity/Users.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/API_Management_Services.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Azure_API_for_FHIR.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Azure_Data_Catalog.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Event_Grid_Domains.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Event_Grid_Subscriptions.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Event_Grid_Topics.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Integration_Accounts.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Logic_Apps.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Partner_Topic.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Relays.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/SQL_Data_Warehouses.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/Software_as_a_Service.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/integration/System_Topic.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/internet_of_things/Digital_Twins.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/internet_of_things/Time_Series_Insights_Access_Policies.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Azure_AD_Roles_and_Administrators.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Device_Security_Apple.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Device_Security_Google.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Device_Security_Windows.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Intune.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/intune/Intune_For_Education.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/iot/Azure_Maps_Accounts.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/iot/Device_Provisioning_Services.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/iot/Event_Hubs.svg';
@@ -641,6 +663,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ma
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Azure_Lighthouse.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Blueprints.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Compliance.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Cost_Management_and_Billing.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Diagnostics_Settings.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Education.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg';
@@ -657,6 +680,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ma
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/Solutions.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/management_governance/User_Privacy.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/migrate/Azure_Migrate.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/migrate/Cost_Management_and_Billing.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/migrate/Data_Box.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/migrate/Data_Box_Edge.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/migrate/Recovery_Services_Vaults.svg';
@@ -673,6 +697,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ne
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Front_Doors.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/IP_Groups.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Load_Balancers.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Local_Network_Gateways.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/NAT.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Network_Interfaces.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Network_Security_Groups.svg';
@@ -694,10 +719,16 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/ne
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Virtual_Networks_Classic.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Virtual_WANs.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/networking/Web_Application_Firewall_Policies_WAF.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Azure_Backup_Center.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Detonation.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/ExpressRoute_Direct.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Instance_Pools.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Internet_Analyzer_Profiles.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Local_Network_Gateways.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Peering_Service.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Resource_Mover.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/SSH_Keys.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Template_Specs.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Universal_Print.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/other/Windows_Virtual_Desktop.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/preview/Azure_Cloud_Shell.svg';
@@ -710,6 +741,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/pr
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/preview/Time_Series_Data_Sets.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/preview/Web_Environment.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/security/Application_Security_Groups.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/security/Azure_Defender.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/security/Azure_Sentinel.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/security/Conditional_Access.svg';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/img/lib/azure2/security/ExtendedSecurityUpdates.svg';
@@ -1735,7 +1767,6 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/grapheditor/Sh
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/grapheditor/Sidebar.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/grapheditor/Toolbar.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/jscolor/jscolor.js';
-import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/json/json2.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/jszip/jszip.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/math-print.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/mermaid/mermaid.min.js';
@@ -1751,6 +1782,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/orgchart.min.j
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/rough/rough.js.modified';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/rough/rough.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/sanitizer/sanitizer.min.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/shapes-14-6-5.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/shapes.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/socket.io/simplepeer9.10.0.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/js/socket.io/socket.io.min.js';
@@ -2211,6 +2243,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/resources/dia_vi.
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/resources/dia_zh-tw.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/resources/dia_zh.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/service-worker.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/service-worker.js.map';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/bpmn/mxBpmnShape2.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/er/mxER.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/ios7/mxIOS7Ui.js';
@@ -2255,6 +2288,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/pid2/mxPid
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/pid2/mxPidValves.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shapes/rack/mxRack.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/shortcuts.svg';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/stencils/LICENSE';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/stencils/android/android.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/stencils/arrows.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/stencils/atlassian.xml';
@@ -2462,6 +2496,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/styles/sprites.pn
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/styles/thumb_horz.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/styles/thumb_vertical.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/styles/up.gif';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/LICENSE';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/basic/classes.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/basic/classes.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/basic/cross.png';
@@ -2707,6 +2742,12 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/softwar
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/eip.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/entity_relationship.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/entity_relationship.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_1.png';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_1.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_2.png';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_2.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_3.png';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/software/git_flow_3.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/tables/authority_matrix.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/tables/authority_matrix.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/tables/gantt_1.png';
@@ -2758,3 +2799,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/wirefra
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/wireframes/home_page_hero_video_1.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/templates/wireframes/home_page_hero_video_1.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../dio/vsdxImporter.html';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/workbox-9fe249eb.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/workbox-9fe249eb.js.map';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/workbox-f163abaa.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../dio/workbox-f163abaa.js.map';

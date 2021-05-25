@@ -28,10 +28,22 @@ import {
 import '../style/index.css';
 import { IDiagramManager, DEBUG } from './tokens';
 import { Diagram } from './editor';
+import SCHEMA from './_schema';
 
 export class DiagramDocument extends DocumentWidget<Diagram> {
   protected _manager: IDiagramManager;
   getSettings: ISettingsGetter;
+
+  private _urlParams: SCHEMA.DrawioURLParams = {};
+
+  get urlParams() {
+    return this._urlParams;
+  }
+
+  set urlParams(urlParams: SCHEMA.DrawioURLParams) {
+    this._urlParams = urlParams;
+    this.content.maybeReloadFrame();
+  }
 
   readonly context: DocumentRegistry.Context;
 
@@ -125,8 +137,12 @@ export class DiagramFactory extends ABCWidgetFactory<
             return doc.format;
           },
           urlParams: () => {
-            return this.getSettings()
+            const settingsUrlParams = this.getSettings()
               ?.drawioUrlParams as ReadonlyPartialJSONObject;
+            return {
+              ...settingsUrlParams,
+              ...doc.urlParams,
+            } as any;
           },
           drawioConfig: () => {
             return this.getSettings()
@@ -164,6 +180,9 @@ export class DiagramFactory extends ABCWidgetFactory<
       }),
       getSettings: this.getSettings,
       manager: this.manager,
+    });
+    doc.content.escaped.connect(() => {
+      this.manager.escapeCurrent(doc);
     });
     return doc;
   }

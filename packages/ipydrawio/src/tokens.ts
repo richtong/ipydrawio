@@ -16,14 +16,16 @@
   limitations under the License.
 */
 
-import * as PACKAGE from '../package.json';
-
-import { Token } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
+import { ReadonlyPartialJSONObject, Token } from '@lumino/coreutils';
 import { Contents } from '@jupyterlab/services';
 import { LabIcon } from '@jupyterlab/ui-components';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+
+import * as _PACKAGE from '../package.json';
+
+export const PACKAGE = _PACKAGE;
 
 export const NS = PACKAGE.name;
 export const VERSION = PACKAGE.version;
@@ -46,6 +48,9 @@ export const DRAWIO_ICON_SVG = ICON_SVG;
 
 export const IPYDRAWIO_METADATA = NS;
 
+import SCHEMA from './_schema';
+import SCHEMA_JSON from '../schema/plugin.json';
+
 /**
  * Escape hatch for runtime debugging.
  */
@@ -54,12 +59,22 @@ export const DEBUG_LEVEL = DEBUG
   ? window.location.href.indexOf('DRAWIO_DEBUG')
   : 0;
 
+export interface ITemplate {
+  label: string;
+  thumbnail: string;
+  url: string;
+  tags: string[];
+}
+
 export interface IDiagramManager {
   addFormat(format: IFormat): void;
+  formats: IFormat[];
   formatForModel(contentsModel: Partial<Contents.IModel>): IFormat | null;
   activeWidget: DiagramDocument | null;
   drawioURL: string;
   settings: ISettingRegistry.ISettings;
+  escapeCurrent(widget: Widget): void;
+  templates(): Promise<ITemplate[]>;
 }
 
 export const DRAWIO_ICON_CLASS_RE = /jp-icon-warn0/;
@@ -67,13 +82,48 @@ export const DRAWIO_ICON_CLASS_RE = /jp-icon-warn0/;
 export const DIAGRAM_MENU_RANK = 99;
 
 // TODO: this is duplicated in schema
-export const UI_THEMES = ['min', 'atlas', 'dark', 'kennedy'];
+export type TUIThemes = SCHEMA.UITheme;
+export const UI_THEMES = SCHEMA_JSON.definitions['ui-theme'][
+  'enum'
+] as TUIThemes[];
+export const UI_THEME_BASE_COLOR = '#f08705';
+
+export type TStringReplacement = [string, string];
+export type TUIThemeOverrides = Record<SCHEMA.UITheme, TStringReplacement[]>;
+
+export const UI_THEME_COLORS: TUIThemeOverrides = {
+  sketch: [[UI_THEME_BASE_COLOR, '#fff2a1']],
+  dark: [[UI_THEME_BASE_COLOR, '#666']],
+  min: [[UI_THEME_BASE_COLOR, '#eee']],
+  kennedy: [[UI_THEME_BASE_COLOR, '#0052cc']],
+  atlas: [['UI_THEME_BASE_COLOR', '#0049B0']],
+};
 
 export const IDiagramManager = new Token<IDiagramManager>(PLUGIN_ID);
 
 export namespace CommandIds {
   export const createNew = 'drawio:create-new';
+  export const createNewCustom = 'drawio:create-new-custom';
   export const setUrlParams = 'drawio:url-params';
+}
+
+export interface ISetUrlParamsArgs {
+  drawioUrlParams: SCHEMA.DrawioURLParams;
+}
+
+export interface ICreateNewArgs extends ISetUrlParamsArgs {
+  /**
+   * The path in which to create a new untitled file.
+   */
+  cwd: string;
+  /**
+   * The format to use for a new file
+   */
+  format?: string;
+  /**
+   * The base name for a new file (without extension)
+   */
+  name?: string;
 }
 
 export namespace IDiagramManager {

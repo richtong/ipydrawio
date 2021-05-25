@@ -1,9 +1,8 @@
 # IPyDrawio
 
-[![binder-badge][]][binder] [![install from pypi][pypi-badge]][pypi]
-[![install from conda-forge][conda-badge]][conda]
-[![reuse from npm][npm-badge]][npm] [![build][workflow-badge]][workflow]
-[![coverage][cov-badge]][cov]
+|            demo             |            docs             |                                                            install                                                             |                               build                                |
+| :-------------------------: | :-------------------------: | :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------: |
+| [![binder-badge][]][binder] | [![docs][docs-badge]][docs] | [![install from pypi][pypi-badge]][pypi] [![install from conda-forge][conda-badge]][conda] [![reuse from npm][npm-badge]][npm] | [![build][workflow-badge]][workflow] [![coverage][cov-badge]][cov] |
 
 > [Drawio][] diagrams for [JupyterLab][]. Forked with ❤️ from
 > [QuantStack/jupyterlab-drawio][].
@@ -150,8 +149,7 @@ limitations under the License.
   https://github.com/deathbeds/ipydrawio/workflows/.github/workflows/ci.yml/badge.svg
 [workflow]:
   https://github.com/deathbeds/ipydrawio/actions?query=branch%3Amaster+workflow%3A.github%2Fworkflows%2Fci.yml
-[roadmap]:
-  https://github.com/deathbeds/ipydrawio/blob/master/docs/ROADMAP.dio.ipynb
+[roadmap]: https://github.com/deathbeds/ipydrawio/blob/master/docs/ROADMAP.ipynb
 [conda-badge]: https://img.shields.io/conda/vn/conda-forge/ipydrawio
 [conda]: https://anaconda.org/conda-forge/ipydrawio
 [pypi-badge]: https://img.shields.io/pypi/v/ipydrawio
@@ -161,6 +159,8 @@ limitations under the License.
 [cov-badge]:
   https://codecov.io/gh/deathbeds/ipydrawio/branch/master/graph/badge.svg?token=9B74VKHQDK
 [cov]: https://codecov.io/gh/deathbeds/ipydrawio
+[docs-badge]: https://readthedocs.org/projects/ipydrawio/badge/?version=latest
+[docs]: https://ipydrawio.rtfd.io
 [contributing]:
   https://github.com/deathbeds/ipydrawio/blob/master/CONTRIBUTING.md
 [documents]:
@@ -177,7 +177,7 @@ limitations under the License.
 [poster]:
   https://raw.githubusercontent.com/deathbeds/ipydrawio/master/docs/Poster.dio.svg
 [roadmap]:
-  https://nbviewer.jupyter.org/github/deathbeds/ipydrawio/blob/master/docs/ROADMAP.dio.ipynb
+  https://nbviewer.jupyter.org/github/deathbeds/ipydrawio/blob/master/docs/ROADMAP.ipynb
 [command palette]:
   https://jupyterlab.readthedocs.io/en/stable/user/commands.html?highlight=command%20palette
 [launcher]:

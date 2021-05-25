@@ -1,5 +1,5 @@
 {
-  "author": "Dead Pixels Collective",
+  "author": "IPyDrawio Contributors",
   "bugs": {
     "url": "https://github.com/deathbeds/ipydrawio/issues"
   },
@@ -11,7 +11,7 @@
     "typescript": "~4.2.4"
   },
   "description": "A webpack-ready repackaging of drawio",
-  "homepage": "https://github.com/deathbeds/ipydrawio",
+  "homepage": "https://ipydrawio.rtfd.io",
   "keywords": [
     "webpack",
     "drawio"
@@ -43,5 +43,5 @@
     "build:pre": "python scripts/patch.py && python scripts/static.py"
   },
   "types": "lib/index.d.ts",
-  "version": "14.5.902"
+  "version": "14.6.1300"
 }

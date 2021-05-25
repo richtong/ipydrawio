@@ -20,9 +20,14 @@
 import json
 import os
 import platform
+import re
 import shutil
 import sys
+from collections import defaultdict
 from pathlib import Path
+
+_SESSION = None
+
 
 # platform
 PLATFORM = os.environ.get("FAKE_PLATFORM", platform.system())
@@ -30,6 +35,7 @@ WIN = PLATFORM == "Windows"
 OSX = PLATFORM == "Darwin"
 UNIX = not WIN
 PREFIX = Path(sys.prefix)
+ENC = dict(encoding="utf-8")
 
 BUILDING_IN_CI = bool(json.loads(os.environ.get("BUILDING_IN_CI", "0")))
 TESTING_IN_CI = bool(json.loads(os.environ.get("TESTING_IN_CI", "0")))
@@ -61,9 +67,37 @@ YARN_LOCK = ROOT / "yarn.lock"
 DODO = ROOT / "dodo.py"
 BUILD = ROOT / "build"
 DIST = ROOT / "dist"
+DOCS = ROOT / "docs"
 README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
 SETUP_CFG = ROOT / "setup.cfg"
+
+# external URLs
+# archive.org template
+CACHE_EPOCH = 0
+HTTP_CACHE = BUILD / ".requests-cache"
+
+
+def A_O(archive_id, url, cache_bust=CACHE_EPOCH):
+    return "https://web.archive.org/web/{}/{}#{}".format(archive_id, url, cache_bust)
+
+
+DIA_FAQ = "https://www.diagrams.net/doc/faq"
+
+FETCHED = BUILD / "fetched"
+
+DIA_URLS = {
+    FETCHED
+    / "supported-url-parameters.html": (
+        A_O(20210425055302, f"{DIA_FAQ}/supported-url-parameters")
+    ),
+    FETCHED / "embed-mode.html": (A_O(20200924053756, f"{DIA_FAQ}/embed-mode")),
+    FETCHED
+    / "configure-diagram-editor.html": (
+        A_O(20210503071537, f"{DIA_FAQ}/configure-diagram-editor")
+    ),
+}
+
 
 # ci
 CI = ROOT / ".github"
@@ -101,6 +135,10 @@ ATEST_OUT_XML = "output.xml"
 JS_NS = "deathbeds"
 IPYDIO = PACKAGES / "ipydrawio"
 TSCONFIGBASE = PACKAGES / "tsconfigbase.json"
+TSCONFIG_TYPEDOC = PACKAGES / "tsconfig.typedoc.json"
+TYPEDOC_JSON = PACKAGES / "typedoc.json"
+TYPEDOC_CONF = [TSCONFIG_TYPEDOC, TYPEDOC_JSON]
+NO_TYPEDOC = ["_meta", "ipydrawio-webpack"]
 
 # so many js packages
 JS_PKG_JSON = {p.parent.name: p for p in PACKAGES.glob("*/package.json")}
@@ -139,12 +177,11 @@ JS_TSCONFIG = {
 JS_TSSRC = {
     k: sorted(
         [
-            *(v.parent.parent.parent / "src").rglob("*.ts"),
-            *(v.parent.parent / "src").rglob("*.tsx"),
+            *(v.parent).rglob("*.ts"),
+            *(v.parent / "src").rglob("*.tsx"),
         ]
     )
     for k, v in JS_TSCONFIG.items()
-    if (v.parent / "src").exists()
 }
 
 JS_TSBUILDINFO = {
@@ -161,6 +198,12 @@ JS_PY_SCRIPTS = {
     k: sorted((v.parent / "scripts").glob("*.py"))
     for k, v in JS_PKG_JSON.items()
     if (v.parent / "scripts").exists()
+}
+
+JS_SCHEMAS = {
+    k: sorted((v.parent / "schema").glob("*.json"))
+    for k, v in JS_PKG_JSON.items()
+    if (v.parent / "schema").exists()
 }
 
 # special things for ipydrawio-webpack
@@ -210,6 +253,51 @@ SERVER_EXT = {
 }
 
 
+# docs
+DOCS_CONF = DOCS / "conf.py"
+ENV_DOCS = DOCS / "environment.yml"
+DOCS_BUILD = BUILD / "docs"
+DOCS_BUILDINFO = DOCS_BUILD / ".buildinfo"
+DOCS_MD = [
+    p
+    for p in DOCS.rglob("*.md")
+    if not (p.parent.name == "ts" or p.parent.parent.name == "ts")
+]
+DOCS_RST = [*DOCS.rglob("*.md")]
+DOCS_IPYNB = [*DOCS.rglob("*.ipynb")]
+DOCS_SRC = [*DOCS_MD, *DOCS_RST, *DOCS_IPYNB]
+DOCS_STATIC = DOCS / "_static"
+DOCS_FAVICON_SVG = DOCS_STATIC / "icon.svg"
+DOCS_FAVICON_ICO = DOCS_STATIC / "favicon.ico"
+DOCS_TS = DOCS / "api/ts"
+DOCS_TS_MYST_INDEX = DOCS_TS / "index.md"
+DOCS_TS_MODULES = [
+    ROOT / "docs/api/ts" / f"{p.parent.name}.md"
+    for p in JS_PKG_JSON.values()
+    if p.parent.name not in NO_TYPEDOC
+]
+
+DOCS_RAW_TYPEDOC = BUILD / "typedoc"
+DOCS_RAW_TYPEDOC_README = DOCS_RAW_TYPEDOC / "README.md"
+MD_FOOTER = """
+```
+Copyright 2021 ipydrawio contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+"""
+
+# collections, mostly for linting
 ALL_PY = [
     *ATEST.rglob("*.py"),
     *BINDER.glob("*.py"),
@@ -220,8 +308,14 @@ ALL_PY = [
     *sum(PY_SRC.values(), []),
     DODO,
     POSTBUILD_PY,
+    DOCS_CONF,
 ]
-ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml"), *BINDER.glob("*.yml")]
+ALL_YML = [
+    *ROOT.glob("*.yml"),
+    *CI.rglob("*.yml"),
+    *BINDER.glob("*.yml"),
+    *DOCS.rglob("*.yml"),
+]
 ALL_JSON = [
     *ROOT.glob("*.json"),
     *PACKAGES.glob("*/*.json"),
@@ -229,14 +323,11 @@ ALL_JSON = [
     *ATEST.glob("fixtures/*.json"),
     *BINDER.glob("*.json"),
 ]
-ALL_MD = [
-    *ROOT.glob("*.md"),
-    *PACKAGES.glob("*/*.md"),
-]
+ALL_MD = [*ROOT.glob("*.md"), *PACKAGES.glob("*/*.md"), *DOCS_MD]
 ALL_SETUP_CFG = [SETUP_CFG, *PY_SETUP_CFG.values()]
 ALL_JS = [PACKAGES / ".eslintrc.js"]
 ALL_TS = sum(JS_TSSRC.values(), [])
-ALL_CSS = sum(JS_STYLE.values(), [])
+ALL_CSS = [*sum(JS_STYLE.values(), []), *DOCS.rglob("*.css")]
 ALL_ROBOT = [*ATEST.rglob("*.robot")]
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS, *ALL_JS]
 ALL_HEADERS = [
@@ -255,18 +346,23 @@ RFLINT_OPTS = sum(
     [
         ["--ignore", c]
         for c in [
+            "FileTooLong",
             "LineTooLong",
             "RequireKeywordDocumentation",
-            "TooFewKeywordSteps",
             "RequireKeywordDocumentation",
+            "TooFewKeywordSteps",
             "TooFewTestSteps",
+            "TooManyTestSteps",
         ]
     ],
     [],
 )
 
 # package: [dependencies, targets]
-JS_PKG_PACK = {k: [[v.parent / "package.json"], [v]] for k, v in JS_TARBALL.items()}
+JS_PKG_PACK = {
+    k: [[v.parent / "package.json", *v.parent.glob("schema/*.json")], [v]]
+    for k, v in JS_TARBALL.items()
+}
 [
     JS_PKG_PACK[k][0].append(v)
     for k, v in JS_TSBUILDINFO.items()
@@ -303,6 +399,7 @@ OK_ROBOT_DRYRUN = BUILD / "robot.dryrun.ok"
 OK_RFLINT = BUILD / "robot.rflint.ok"
 OK_ATEST = BUILD / "atest.ok"
 OK_CONDA_TEST = BUILD / "conda-build.test.ok"
+OK_LINK_CHECK = BUILD / "pytest-check-links.ok"
 
 OK_EXT_BUILD = {k: BUILD / f"ext.build.{k}.ok" for k in JS_LABEXT_PY_HOST}
 
@@ -328,6 +425,9 @@ CONDA_PKGS = {
     for pkg, ver in PY_VERSION.items()
 }
 
+# env inheritance
+ENV_INHERITS = {ENV_BINDER: [ENV_CI, ENV_DOCS], ENV_DOCS: [ENV_CI]}
+
 
 def get_atest_stem(attempt=1, extra_args=None, browser=None):
     """get the directory in ATEST_OUT for this platform/apps"""
@@ -342,6 +442,190 @@ def get_atest_stem(attempt=1, extra_args=None, browser=None):
     return stem
 
 
+def ensure_session():
+    global _SESSION
+
+    if _SESSION is None:
+        try:
+            import requests_cache
+
+            _SESSION = requests_cache.CachedSession(cache_name=str(HTTP_CACHE))
+        except ImportError:
+            import requests
+
+            _SESSION = requests.Session()
+
+
+def fetch_one(url, path):
+    import doit
+
+    yield dict(
+        uptodate=[doit.tools.config_changed({"url": url})],
+        name=path.name,
+        actions=[
+            (doit.tools.create_folder, [HTTP_CACHE]),
+            (doit.tools.create_folder, [path.parent]),
+            (ensure_session, []),
+            lambda: [path.write_bytes(_SESSION.get(url).content), None][-1],
+        ],
+        targets=[path],
+    )
+
+
+def patch_one_env(source, target):
+    print("env", source)
+    print("-->", target)
+    source_text = source.read_text(encoding="utf-8")
+    name = re.findall(r"name: (.*)", source_text)[0]
+
+    comment = f"  ### {name}-deps ###"
+    old_target = target.read_text(encoding="utf-8").split(comment)
+    new_source = source_text.split(comment)
+    target.write_text(
+        "\n".join(
+            [
+                old_target[0].strip(),
+                comment,
+                new_source[1],
+                comment.rstrip(),
+                old_target[2],
+            ]
+        )
+    )
+
+
+def typedoc_conf():
+    typedoc = json.loads(TYPEDOC_JSON.read_text(**ENC))
+    original_entry_points = sorted(typedoc["entryPoints"])
+    new_entry_points = sorted(
+        [
+            str(
+                (
+                    p.parent / "src/index.ts"
+                    if (p.parent / "src/index.ts").exists()
+                    else p.parent / "lib/index.d.ts"
+                )
+                .relative_to(ROOT)
+                .as_posix()
+            )
+            for p in JS_PKG_JSON.values()
+            if p.parent.name not in NO_TYPEDOC
+        ]
+    )
+
+    if json.dumps(original_entry_points) != json.dumps(new_entry_points):
+        typedoc["entryPoints"] = new_entry_points
+        TYPEDOC_JSON.write_text(json.dumps(typedoc, indent=2, sort_keys=True), **ENC)
+
+    tsconfig = json.loads(TSCONFIG_TYPEDOC.read_text(**ENC))
+    original_references = tsconfig["references"]
+    new_references = sum(
+        [
+            [
+                {"path": f"./{p.parent.name}/src"},
+                {"path": f"./{p.parent.name}"},
+            ]
+            for p in JS_PKG_JSON.values()
+            if p.parent.name not in NO_TYPEDOC
+        ],
+        [],
+    )
+
+    if json.dumps(original_references) != json.dumps(new_references):
+        tsconfig["references"] = new_references
+        TSCONFIG_TYPEDOC.write_text(
+            json.dumps(tsconfig, indent=2, sort_keys=True), **ENC
+        )
+
+
+def mystify():
+    """unwrap monorepo docs into per-module docs"""
+    mods = defaultdict(lambda: defaultdict(list))
+    if DOCS_TS.exists():
+        shutil.rmtree(DOCS_TS)
+
+    def mod_md_name(mod):
+        return mod.replace("@jupyterlite/", "") + ".md"
+
+    for doc in sorted(DOCS_RAW_TYPEDOC.rglob("*.md")):
+        if doc.parent == DOCS_RAW_TYPEDOC:
+            continue
+        if doc.name == "README.md":
+            continue
+        doc_text = doc.read_text(**ENC)
+        doc_lines = doc_text.splitlines()
+        mod_chunks = doc_lines[0].split(" / ")
+        src = mod_chunks[1]
+        if src.startswith("["):
+            src = re.findall(r"\[(.*)/src\]", src)[0]
+        else:
+            src = src.replace("/src", "")
+        pkg = f"""@jupyterlite/{src.replace("/src", "")}"""
+        mods[pkg][doc.parent.name] += [
+            str(doc.relative_to(DOCS_RAW_TYPEDOC).as_posix())[:-3]
+        ]
+
+        # rewrite doc and write back out
+        out_doc = DOCS_TS / doc.relative_to(DOCS_RAW_TYPEDOC)
+        if not out_doc.parent.exists():
+            out_doc.parent.mkdir(parents=True)
+
+        out_text = "\n".join([*doc_lines[1:], ""]).replace("README.md", "index.md")
+        out_text = re.sub(
+            r"## Table of contents(.*?)\n## ",
+            "\n## ",
+            out_text,
+            flags=re.M | re.S,
+        )
+        out_text = out_text.replace("/src]", "]")
+        out_text = re.sub("/src$", "", out_text, flags=re.M)
+        out_text = re.sub(
+            r"^((Implementation of|Overrides|Inherited from):)",
+            "_\\1_",
+            out_text,
+            flags=re.M | re.S,
+        )
+        out_text = re.sub(
+            r"^Defined in: ([^\n]+)$",
+            "_Defined in:_ `\\1`",
+            out_text,
+            flags=re.M | re.S,
+        )
+
+        out_text += MD_FOOTER
+
+        out_doc.write_text(out_text, **ENC)
+
+    for mod, sections in mods.items():
+        out_doc = DOCS_TS / mod_md_name(mod)
+        mod_lines = [f"""# `{mod.replace("@jupyterlite/", "")}`\n"""]
+        for label, contents in sections.items():
+            mod_lines += [
+                f"## {label.title()}\n",
+                "```{toctree}",
+                ":maxdepth: 1",
+                *contents,
+                "```\n",
+                MD_FOOTER,
+            ]
+        out_doc.write_text("\n".join(mod_lines))
+
+    DOCS_TS_MYST_INDEX.write_text(
+        "\n".join(
+            [
+                "# `@deathbeds/ipydrawio`\n",
+                "```{toctree}",
+                ":maxdepth: 1",
+                *[mod_md_name(mod) for mod in sorted(mods)],
+                "```",
+                MD_FOOTER,
+            ]
+        ),
+        **ENC,
+    )
+
+
+# Late environment hacks
 os.environ.update(
     IPYDRAWIO_DATA_DIR=str(IPYDRAWIO_DATA_DIR), PIP_DISABLE_PIP_VERSION_CHECK="1"
 )

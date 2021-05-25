@@ -47,15 +47,19 @@ ${JLAB XP CLOSE SETTINGS}    ${JLAB XP DOCK TAB}\[contains(., 'Settings')]/*[con
 # launcher
 ${XP LAUNCH TAB}    ${JLAB XP DOCK TAB}//*[contains(text(), 'Launcher')]
 ${CSS LAUNCHER}    css:.jp-Launcher-body
-${CSS LAUNCH DIO}    css:.jp-LauncherCard[title='Create a new dio file'] svg
+${CSS LAUNCH DIO}    css:.jp-LauncherCard[title='Create a blank .dio file'] svg
+${CSS LAUNCH ADVANCED}    css:.jp-LauncherCard[title='Create a diagram with customized formats, templates, and UI'] svg
 ${CSS LAUNCH IPYNB}    css:.jp-LauncherCard[data-category='Notebook'][title='Python 3'] .jp-LauncherCard-icon
 ${CSS DIO READY}    css:.jp-Diagram-ready
 ${CSS DIO IFRAME}    ${CSS DIO READY} iframe
 # drawio
-${CSS DIO BG}     css:.geBackgroundPage
+${CSS DIO BG}     css:.geDiagramContainer svg
 ${CSS DIO SHAPE POPUP}    css:.geToolbarContainer.geSidebarContainer.geSidebar
 ${CSS DIO SHAPE POPUP SHAPE}    ${CSS DIO SHAPE POPUP} .geItem
 ${CSS DIO EDITABLE}    css:.mxCellEditor.geContentEditable
+# advanced
+${CSS CREATE ADVANCED}    css:.jp-IPyDiagram-CreateAdvanced
+${CSS ACCEPT ADVANCED}    ${CSS CREATE ADVANCED} header .jp-mod-accept
 # from jupyterlibrary
 ${JLAB CSS ACCEPT}    .jp-mod-accept
 ${JLAB CSS ACTIVE DOC}    .jp-Document:not(.jp-mod-hidden)
@@ -81,6 +85,10 @@ ${JW XP ACCORD CHILD HEAD}    ${JW XP ACCORD CHILD}/div[contains(@class, 'p-Coll
 # notebook
 ${JLAB CSS ICON ADD}    .jp-ToolbarButtonComponent [data-icon='ui-components:add']
 ${JLAB CSS ICON RUN}    .jp-ToolbarButtonComponent [data-icon='ui-components:run']
+${XP DIO FORMAT TITLE}    //*[contains(@class, 'mxWindowTitle')][contains(text(), 'Format')]
+${XP DIO FORMAT TOGGLE}    ${XP DIO FORMAT TITLE}/div
+${XP DIO FORMAT PANE}    ${XP DIO FORMAT TITLE}/../..//td/div[contains(@class, 'mxWindowPane')]
+${XP DIO FORMAT PANE VISIBLE}    ${XP DIO FORMAT PANE}\[not(contains(@style, 'display: none'))]
 ${XP DIO PAGE SIZE}    //div[contains(@class, "geFormatSection")][contains(., "Paper Size")]//select
 # mime
 ${MIME STDERR}    application/vnd.jupyter.stderr

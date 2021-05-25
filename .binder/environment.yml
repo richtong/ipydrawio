@@ -24,7 +24,7 @@ dependencies:
   # demo toys
   - bqplot
   - graphviz2drawio
-  - jupyter-lsp-python-plugins
+  - jupyter-lsp-python-lsp-server
   - jupyter-videochat
   - jupyterlab-classic
   - jupyterlab-lsp
@@ -35,6 +35,7 @@ dependencies:
   - pygraphviz
   - python-graphviz
   - qrcode-artistic
+  - rich
   - segno
   - shapely
   - tabulate
@@ -42,7 +43,23 @@ dependencies:
   - wxyz_json_schema_form
   - wxyz_lab
   - wxyz_svg
+  - sphinx-autobuild
+  ############################################################################
+  ### ipydrawio-docs-deps ###
 
+  - myst-nb
+  - pydata-sphinx-theme
+  - pytest-check-links
+  - sphinx
+  - sphinx-jsonschema
+  # TODO: resolve upstream
+  - sqlalchemy <1.4
+
+  ### ipydrawio-docs-deps ###
+
+  ############################################################################
+
+  ############################################################################
   ### ipydrawio-dev-deps ###
 
   # core
@@ -51,7 +68,6 @@ dependencies:
   - python # this gets patched in ci
   # run
   - ipywidgets >=7.6
-  - jedi <0.18.0
   - jupyterlab >=3.0.13,<4.0.0a0
   - jupyterlab_widgets >=1
   - lxml
@@ -83,3 +99,5 @@ dependencies:
   - codecov
 
   ### ipydrawio-dev-deps ###
+
+  ############################################################################
