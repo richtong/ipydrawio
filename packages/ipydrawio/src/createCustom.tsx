@@ -33,12 +33,12 @@ let THEME_TAGS: Record<SCHEMA.UITheme, string[]> = {
   atlas: [...FULL_UI, ...LIGHT],
 };
 
-export class CreateAdvanced extends VDomRenderer<CreateAdvanced.Model> {
-  constructor(model: CreateAdvanced.Model) {
+export class CreateCustom extends VDomRenderer<CreateCustom.Model> {
+  constructor(model: CreateCustom.Model) {
     super(model);
     this.title.icon = IO.drawioIcon;
     this.title.label = 'New Diagram';
-    this.addClass('jp-IPyDiagram-CreateAdvanced');
+    this.addClass('jp-IPyDiagram-CreateCustom');
     this.addClass('jp-RenderedHTMLCommon');
   }
 
@@ -192,8 +192,8 @@ export class CreateAdvanced extends VDomRenderer<CreateAdvanced.Model> {
         ></input>
         <label htmlFor={id}>
           {template.label}
-          <img src={template.thumbnail}></img>
-          {this.renderTags(template.tags)}
+          {template.thumbnail ? <img src={template.thumbnail}></img> : []}
+          {this.renderTags(template.tags || [])}
         </label>
       </li>
     );
@@ -208,7 +208,7 @@ export class CreateAdvanced extends VDomRenderer<CreateAdvanced.Model> {
   };
 }
 
-export namespace CreateAdvanced {
+export namespace CreateCustom {
   export interface IOptions {
     manager: IDiagramManager;
   }
@@ -271,7 +271,7 @@ export namespace CreateAdvanced {
 
       for (const template of this._templates) {
         let hits = 0;
-        const text = `${template.label} ${template.tags.join(' ')}`;
+        const text = `${template.label} ${(template.tags || []).join(' ')}`;
 
         for (const q of query) {
           if (text.indexOf(q) !== -1) {

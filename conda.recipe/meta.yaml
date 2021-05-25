@@ -99,9 +99,9 @@ outputs:
         - ipydrawio_export
       requires:
         - pip
-        - pytest-cov
-        - pytest-tornasync
-        - pytest-console-scripts
+        - pytest-cov  # [unix]
+        - pytest-tornasync  # [unix]
+        - pytest-console-scripts  # [unix]
       commands:
         - pip check
         - jupyter labextension list
@@ -110,11 +110,10 @@ outputs:
         - jupyter serverextension list
         - jupyter serverextension list 1>serverextensions 2>&1
         - cat serverextensions | grep "ipydrawio_export.*OK"  # [unix]
-        {% set pytest_args = "--cov-fail-under=96" %}
-        {% set pytest_args = pytest_args + " -k not merged" %}  # [win]
+        {% set pytest_args = "--cov-fail-under=96" %}  # [unix]
         # TODO: investigate potential docker/locale issues upstream to restore coverage
         # {% set pytest_args = "--cov-fail-under=54 -k 'not (export_empty or export_merged or serverextension_export)'" %}  # [linux]
-        - pytest -vv {{ pytest_args }} --pyargs ipydrawio_export --script-launch-mode=subprocess --cov=ipydrawio_export --cov-report=term-missing:skip-covered
+        - pytest -vv --pyargs ipydrawio_export --script-launch-mode=subprocess --cov=ipydrawio_export --cov-report=term-missing:skip-covered {{ pytest_args }}  # [unix]
     about:
       home: https://github.com/deathbeds/ipydrawio
       summary: PDF export for IPyDrawio

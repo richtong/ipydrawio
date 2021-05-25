@@ -15,8 +15,9 @@
 #### @deathbeds/ipydrawio 1.1.0
 
 - the `sketch` theme is now available as the `ui` [#40]
-- the _Advanced Diagram..._ Launcher card offers all the themes, templates, and
+- the _Custom Diagram..._ Launcher card offers all the themes, templates, and
   editable formats [#40]
+  - templates can be added by extensions [#41]
 - additional configuration defaults added to `urlParams` [#40]
 - the <kbd>Esc</kbd> button now shifts focus back to the main application
   allowing for use of more keyboard shortcuts. [#40]
@@ -27,11 +28,12 @@
 
 #### @deathbeds/ipydrawio-pdf 1.1.0
 
-#### @deathbeds/ipydrawio-webpack 14.6.1300
+#### @deathbeds/ipydrawio-webpack 14.7.100
 
-- drawio 14.6.13 [#40]
+- drawio 14.7.1 [#41]
 
 [#40]: https://github.com/deathbeds/ipydrawio/pull/40
+[#41]: https://github.com/deathbeds/ipydrawio/pull/41
 
 ---
 
